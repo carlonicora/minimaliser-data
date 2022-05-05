@@ -1,5 +1,5 @@
 <?php
-namespace CarloNicora\Minimaliser\Data\Models;
+namespace CarloNicora\Minimalism\MinimaliserData\Models;
 
 use CarloNicora\Minimalism\Abstracts\AbstractModel;
 use CarloNicora\Minimalism\Enums\HttpCode;
