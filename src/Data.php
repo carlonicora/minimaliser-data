@@ -2,6 +2,7 @@
 namespace CarloNicora\Minimalism\MinimaliserData;
 
 use CarloNicora\Minimalism\Abstracts\AbstractService;
+use CarloNicora\Minimalism\Services\Path;
 use JsonException;
 
 class Data extends AbstractService
@@ -13,6 +14,15 @@ class Data extends AbstractService
     private string $sourceFolder;
 
     /**
+     * @param Path $path
+     */
+    public function __construct(
+        private readonly Path $path,
+    )
+    {
+    }
+
+    /**
      * @return void
      * @throws JsonException
      */
@@ -21,22 +31,33 @@ class Data extends AbstractService
     {
         parent::initialise();
 
-        $root = dirname(__DIR__, 4);
+        $this->initialiseComposer();
+    }
 
-        if (!file_exists($root . DIRECTORY_SEPARATOR . 'composer.json')){
+    /**
+     * @return void
+     * @throws JsonException
+     */
+    private function initialiseComposer(
+    ): void
+    {
+        if (!file_exists($this->path->getRoot() . DIRECTORY_SEPARATOR . 'composer.json')){
             echo 'Cannot find composer.json';
             exit;
         }
 
         $composerJson = file_get_contents(
-            $root . DIRECTORY_SEPARATOR . 'composer.json'
+            $this->path->getRoot() . DIRECTORY_SEPARATOR . 'composer.json'
         );
 
         $composer = json_decode($composerJson, true, 512, JSON_THROW_ON_ERROR);
         $this->namespace = array_key_first($composer['autoload']['psr-4']);
-        $this->sourceFolder = $root .  DIRECTORY_SEPARATOR .  $composer['autoload']['psr-4'][$this->namespace];
+        $this->sourceFolder = $this->path->getRoot() .  DIRECTORY_SEPARATOR .  $composer['autoload']['psr-4'][$this->namespace];
 
-        $a = 1;
+        if (!file_exists($this->sourceFolder)){
+            echo 'Cannot find source folder';
+            exit;
+        }
     }
 
     /**

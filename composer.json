@@ -1,7 +1,7 @@
 {
   "name": "carlonicora/minimaliser-data",
   "description": "Data Minimaliser for Minimalism",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "time": "2022-05-20",
   "type": "project",
   "minimum-stability": "beta",
@@ -19,7 +19,8 @@
     "carlonicora/jsonapi": "~3.0",
     "carlonicora/minimalism": "~13.4",
     "carlonicora/minimalism-interface-sql": "~1.0",
-    "carlonicora/minimalism-service-mysql": "~6.0"
+    "carlonicora/minimalism-service-mysql": "~6.0",
+    "carlonicora/minimalism-service-twig": "~2.0",
   },
   "require-dev": {
     "roave/security-advisories": "dev-latest",

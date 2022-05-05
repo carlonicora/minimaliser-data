@@ -1,0 +1,17 @@
+<?php
+namespace {{ data['namespace'] }}\Data\{{ data['objectName'] }}\Databases;
+
+use CarloNicora\Minimalism\Services\MySQL\Data\SqlField;
+use CarloNicora\Minimalism\Services\MySQL\Data\SqlTable;
+use CarloNicora\Minimalism\Services\MySQL\Enums\FieldOption;
+use CarloNicora\Minimalism\Services\MySQL\Enums\FieldType;
+
+#[SqlTable(name: '{{ data['tableName'] }}', databaseIdentifier: '{{ data['databaseIdentifier'] }}')]
+enum {{ data['objectName'] }}Table
+{
+    {% for data['fields'] as field %}
+    #[SqlField(fieldType: {{ field['type'] }} {% if field['option'] %},fieldOption: {{ field['option'] })]
+    case {{ field['name'] }}
+
+    {% endfor %}
+}
