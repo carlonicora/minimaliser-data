@@ -1,6 +1,6 @@
 <?php
 /** @noinspection PhpIncludeInspection */
-require_once '../../../../vendor/autoload.php';
+require_once '../../../../../vendor/autoload.php';
 
 use CarloNicora\Minimalism\MinimaliserData\Models\Minimaliser;
 use CarloNicora\Minimalism\Minimalism;

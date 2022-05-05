@@ -1,7 +1,7 @@
 {
   "name": "carlonicora/minimaliser-data",
   "description": "Data Minimaliser for Minimalism",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "time": "2022-05-20",
   "type": "project",
   "minimum-stability": "beta",
@@ -16,6 +16,7 @@
   "require": {
     "php": ">=8.1",
     "ext-json": "*",
+    "ext-readline": "*",
     "carlonicora/jsonapi": "~3.0",
     "carlonicora/minimalism": "~13.4",
     "carlonicora/minimalism-interface-sql": "~1.0",

@@ -1,0 +1,16 @@
+<?php
+namespace {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\Databases;
+
+use CarloNicora\Minimalism\Services\MySQL\Data\SqlField;
+use CarloNicora\Minimalism\Services\MySQL\Data\SqlTable;
+use CarloNicora\Minimalism\Services\MySQL\Enums\FieldOption;
+use CarloNicora\Minimalism\Services\MySQL\Enums\FieldType;
+
+#[SqlTable(name: '{{ data.id }}', databaseIdentifier: '{{ data.attributes.databaseIdentifier }}')]
+enum {{ data.attributes.objectNamePlural }}Table
+{
+{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}
+    #[SqlField(fieldType: FieldType::{{ field.attributes.type }}{% if field.meta.option %} ,fieldOption: FieldOption::{{ field.meta.option }}{% endif %})]
+    case {{ field.id }};
+{% endfor %}
+}
