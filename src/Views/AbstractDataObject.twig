@@ -1,0 +1,42 @@
+<?php
+namespace {{ meta.namespace }}Data\Abstracts;
+
+use CarloNicora\Minimalism\Factories\ObjectFactory;
+use CarloNicora\Minimalism\Interfaces\Encrypter\Interfaces\EncrypterInterface;
+use CarloNicora\Minimalism\Interfaces\Sql\Attributes\DbField;
+use CarloNicora\Minimalism\Interfaces\Sql\Enums\DbFieldType;
+use CarloNicora\Minimalism\Interfaces\Sql\Interfaces\SqlDataObjectInterface;
+use {{ meta.namespace }}Enums\{{ meta.projectName }}Dictionary;
+use CarloNicora\Minimalism\Services\MySQL\Traits\SqlDataObjectTrait;
+use CarloNicora\Minimalism\Services\Path;
+use CarloNicora\Minimalism\Services\ResourceBuilder\Interfaces\ResourceableDataInterface;
+
+abstract class Abstract{{ meta.projectName }}DataObject implements SqlDataObjectInterface, ResourceableDataInterface
+{
+    use SqlDataObjectTrait;
+
+    /** @var {{ meta.projectName }}Dictionary  */
+    protected {{ meta.projectName }}Dictionary $type;
+
+    /** @var int  */
+    protected int $id;
+
+    /**
+     * @param ObjectFactory|null $objectFactory
+     * @param EncrypterInterface|null $encrypter
+     * @param Path|null $path
+     */
+    public function __construct(
+        protected ?ObjectFactory $objectFactory=null,
+        protected ?EncrypterInterface $encrypter=null,
+        protected ?Path $path=null,
+    )
+    {
+    }
+
+    /** @return int */
+    public function getId(): int{return $this->id;}
+
+    /** @param int $id */
+    public function setId(int $id): void{$this->id = $id;}
+}

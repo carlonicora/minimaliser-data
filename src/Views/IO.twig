@@ -1,0 +1,125 @@
+<?php
+namespace {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\IO;
+
+use CarloNicora\Minimalism\Exceptions\MinimalismException;
+use CarloNicora\Minimalism\Interfaces\Sql\Abstracts\AbstractSqlIO;
+use CarloNicora\Minimalism\Interfaces\Sql\Enums\SqlComparison;
+use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\Databases\{{ data.attributes.objectNamePlural }}Table;
+use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\DataObjects\{{ data.attributes.objectName }};
+use CarloNicora\Minimalism\Services\MySQL\Factories\SqlQueryFactory;
+use CarloNicora\Minimalism\Services\MySQL\Factories\SqlTableFactory;
+use Exception;
+
+class {{ data.attributes.objectName }}IO extends AbstractSqlIO
+{
+    /**
+     * @param int $id
+     * @return {{ data.attributes.objectName }}
+     * @throws MinimalismException
+     */
+    public function readById(
+        int $id,
+    ): {{ data.attributes.objectName }}
+    {
+        $factory = SqlQueryFactory::create({{ data.attributes.objectNamePlural }}Table::class)
+            ->addParameter({{ data.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }}, $id);
+
+        return $this->data->read(
+            queryFactory: $factory,
+            responseType: {{ data.attributes.objectName }}::class,
+        );
+    }
+
+    /**
+    * @param array|null $page
+    * @return {{ data.attributes.objectName }}[]
+    * @throws MinimalismException
+    */
+    public function readList(
+        ?array $page,
+    ): array
+    {
+        $factory = SqlQueryFactory::create({{ data.attributes.objectNamePlural }}Table::class);
+
+        if ($page === null){
+            $factory->limit(0, 25);
+        } elseif (array_key_exists('before', $page)){
+            $factory->addParameter(
+                field:{{ data.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }},
+                value: $page['before'],
+                comparison: SqlComparison::GreaterThan
+            )->addParameter(
+                field:{{ data.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }},
+                value: $page['after'],
+                comparison: SqlComparison::LesserOrEqualThan
+            );
+        } else {
+            $factory->addParameter(
+                field:{{ data.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }},
+                value: $page['after'],
+                comparison: SqlComparison::GreaterThan
+            );
+
+            if (array_key_exists('size', $page)){
+                $factory->limit(0, $page['size']);
+            } else {
+                $factory->limit(0, 25);
+            }
+        }
+
+        return $this->data->read(
+            queryFactory: $factory,
+            responseType: {{ data.attributes.objectName }}::class,
+            requireObjectsList: true,
+        );
+    }
+
+    /**
+    * @param {{ data.attributes.objectName }} ${{ data.attributes.objectName | lower }}
+    * @return {{ data.attributes.objectName }}
+    * @throws Exception
+    */
+    public function insert(
+        {{ data.attributes.objectName }} ${{ data.attributes.objectName | lower}},
+    ): {{ data.attributes.objectName }}
+    {
+        return $this->data->create(
+            queryFactory: ${{ data.attributes.objectName | lower}},
+            cacheBuilder: null,
+            responseType: {{ data.attributes.objectName }}::class,
+        );
+    }
+
+    /**
+    * @param {{ data.attributes.objectName }} ${{ data.attributes.objectName | lower }}
+    * @return void
+    */
+    public function updateCompanie(
+        {{ data.attributes.objectName }} ${{ data.attributes.objectName | lower }},
+    ): void
+    {
+        $this->data->update(
+            queryFactory: ${{ data.attributes.objectName | lower }},
+            cacheBuilder: null,
+        );
+    }
+
+    /**
+    * @param int $id
+    * @return void
+    * @throws MinimalismException
+    */
+    public function deleteById(
+        int $id,
+    ): void
+    {
+        $factory = SqlQueryFactory::create({{ data.attributes.objectNamePlural }}Table::class)
+            ->delete()
+            ->addParameter(field: {{ data.attributes.objectNamePlural }}Table::companyId, value: $id);
+
+        $this->data->delete(
+            queryFactory: $factory,
+            cacheBuilder: null,
+        );
+    }
+}

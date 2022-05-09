@@ -16,16 +16,16 @@ class {{ data.attributes.objectName }} extends Abstract{{ data.attributes.projec
 {% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}
     /** @var {{ field.attributes.phpType }}{% if field.attributes.isNullable == true%}|null{% endif %}  */
     #[DbField(field: {{ data.attributes.objectNamePlural }}Table::{{ field.id }})]
-    protected {% if field.attributes.isNullable == true%}?{% endif %}{{ field.attributes.phpType }} ${{ field.id }}{% if field.attributes.isNullable == true%}=null{% endif %};
+    protected {% if field.attributes.isNullable == true%}?{% endif %}{{ field.attributes.phpType }} ${% if field.meta.isId == true%}id{% else %}{{ field.id }}{% endif %}{% if field.attributes.isNullable == true%}=null{% endif %};
 
 {% endfor %}
 
-{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}
+{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{%if field.meta.isId == false%}
     /** @return {{ field.attributes.phpType }}{% if field.attributes.isNullable == true%}|null{% endif %} */
     public function get{{ field.meta.capitalisedName }}(): {% if field.attributes.isNullable == true%}?{% endif %}{{ field.attributes.phpType }}{return $this->{{field.id}};}
 
     /*** @param {{ field.attributes.phpType }}{% if field.attributes.isNullable == true%}|null{% endif %} ${{field.id}} */
     public function set{{ field.meta.capitalisedName }}({% if field.attributes.isNullable == true%}?{% endif %}{{ field.attributes.phpType }} ${{field.id}}): void{$this->{{field.id}} = ${{field.id}};}
 
-{% endfor %}
+{% endif %}{% endfor %}
 }

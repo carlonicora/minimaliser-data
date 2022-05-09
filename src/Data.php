@@ -2,7 +2,9 @@
 namespace CarloNicora\Minimalism\MinimaliserData;
 
 use CarloNicora\Minimalism\Abstracts\AbstractService;
+use CarloNicora\Minimalism\MinimaliserData\Factories\FileFactory;
 use CarloNicora\Minimalism\Services\Path;
+use CarloNicora\Minimalism\Services\Twig\Twig;
 use JsonException;
 
 class Data extends AbstractService
@@ -13,11 +15,16 @@ class Data extends AbstractService
     /** @var string  */
     private string $sourceFolder;
 
+    /** @var string  */
+    private string $dataDirectory;
+
     /**
      * @param Path $path
+     * @param Twig $twig
      */
     public function __construct(
         private readonly Path $path,
+        private readonly Twig $twig,
     )
     {
     }
@@ -52,12 +59,23 @@ class Data extends AbstractService
 
         $composer = json_decode($composerJson, true, 512, JSON_THROW_ON_ERROR);
         $this->namespace = array_key_first($composer['autoload']['psr-4']);
-        $this->sourceFolder = $this->path->getRoot() .  DIRECTORY_SEPARATOR .  $composer['autoload']['psr-4'][$this->namespace];
+        $this->sourceFolder = $this->path->getRoot() .  DIRECTORY_SEPARATOR .  $composer['autoload']['psr-4'][$this->namespace] . DIRECTORY_SEPARATOR;
+        $this->dataDirectory = $this->sourceFolder . 'Data' . DIRECTORY_SEPARATOR;
+
+        if (!file_exists($this->dataDirectory)) {
+            mkdir($this->dataDirectory);
+        }
 
         if (!file_exists($this->sourceFolder)){
             echo 'Cannot find source folder';
             exit;
         }
+
+        FileFactory::initialise(
+            twig: $this->twig,
+            dataDirectory: $this->dataDirectory,
+            sourceDirectory: $this->sourceFolder,
+        );
     }
 
     /**
@@ -76,5 +94,14 @@ class Data extends AbstractService
     ): string
     {
         return $this->sourceFolder;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDataDirectory(
+    ): string
+    {
+        return $this->dataDirectory;
     }
 }

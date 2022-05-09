@@ -3,13 +3,12 @@ namespace CarloNicora\Minimalism\MinimaliserData\Models;
 
 use CarloNicora\Minimalism\Abstracts\AbstractModel;
 use CarloNicora\Minimalism\Enums\HttpCode;
+use CarloNicora\Minimalism\Factories\MinimalismFactories;
 use CarloNicora\Minimalism\Interfaces\Sql\Interfaces\SqlInterface;
 use CarloNicora\Minimalism\MinimaliserData\Data;
-use CarloNicora\Minimalism\MinimaliserData\Enums\Generator;
 use CarloNicora\Minimalism\MinimaliserData\Factories\FileFactory;
 use CarloNicora\Minimalism\MinimaliserData\Objects\DatabaseObject;
 use CarloNicora\Minimalism\MinimaliserData\Objects\TableObject;
-use CarloNicora\Minimalism\Services\Twig\Twig;
 use Exception;
 
 /*
@@ -23,29 +22,91 @@ use Exception;
  */
 class Minimaliser extends AbstractModel
 {
-    /** @var Twig  */
-    private Twig $twig;
+    /** @var Data  */
+    private Data $minimaliser;
 
-    /** @var string  */
-    private string $dataDirectory;
+    /** @var SqlInterface  */
+    private SqlInterface $data;
 
     /**
-     * @param Data $minimaliser
-     * @param SqlInterface $data
-     * @param Twig $twig
+     * @param MinimalismFactories $minimalismFactories
+     * @param string|null $function
+     */
+    public function __construct(
+        MinimalismFactories $minimalismFactories,
+        ?string $function = null,
+    )
+    {
+        parent::__construct(
+            minimalismFactories: $minimalismFactories,
+            function: $function,
+        );
+
+        $this->minimaliser = $minimalismFactories->getServiceFactory()->create(Data::class);
+        $this->data = $minimalismFactories->getServiceFactory()->create(SqlInterface::class);
+    }
+
+    /**
+     * @param string $prompt
+     * @param bool $isYesNoAnswer
+     * @param string|bool|null $defaultAnswer
+     * @return string|bool
+     */
+    private function readInput(
+        string $prompt,
+        bool $isYesNoAnswer=false,
+        string|bool|null $defaultAnswer=null,
+    ): string|bool
+    {
+        if ($defaultAnswer !== null){
+            if ($isYesNoAnswer && $defaultAnswer === true) {
+                $prompt .= '(Y/n)';
+            } elseif ($isYesNoAnswer && $defaultAnswer === false){
+                $prompt .= '(y/N)';
+            } else {
+                $prompt .= '(' . $defaultAnswer . ')';
+            }
+        }
+        $prompt .= ': ';
+        $textResponse = readline($prompt);
+
+        if ($isYesNoAnswer){
+            if ($textResponse === ''){
+                $response = $defaultAnswer;
+            } else {
+                switch (strtolower($textResponse)) {
+                    case 'y':
+                        $response = true;
+                        break;
+                    case 'n':
+                        $response = false;
+                        break;
+                    default:
+                        echo 'The answer can be either Yes (y/Y) or No (N/n). Please reply with a valid answer.' . PHP_EOL;
+                        $response = $this->readInput($prompt, $isYesNoAnswer, $defaultAnswer);
+                        break;
+                }
+            }
+        } else {
+            if ($defaultAnswer !== null && $textResponse === ''){
+                $response = $defaultAnswer;
+            } else {
+                $response = $textResponse;
+            }
+        }
+
+        return $response;
+    }
+
+    /**
      * @return HttpCode
      * @throws Exception
      */
     public function cli(
-        Data $minimaliser,
-        SqlInterface $data,
-        Twig $twig,
     ): HttpCode
     {
-        $this->twig = $twig;
-
         system('clear');
-        $projectName = readline('Project Name: ');
+        $projectName = $this->readInput(prompt: 'Project Name');
 
         $databaseIdentifier = null;
 
@@ -60,58 +121,40 @@ class Minimaliser extends AbstractModel
                 }
 
                 while ($databaseIdentifier === null) {
-                    $input = readline('Select database to import: ');
+                    $input = $this->readInput(prompt: 'Select database to import');
                     if (is_numeric($input) || $input <= count($dbs) - 1){
                         $databaseIdentifier = $dbs[$input];
                     } else {
-                        readline('Invalid selection. Please hit return to select a correct database');
+                        echo 'Invalid selection';
                     }
                 }
             }
 
             $database = new DatabaseObject(
-                data: $data,
+                data: $this->data,
                 projectName: $projectName,
-                namespace: $minimaliser->getNamespace(),
+                namespace: $this->minimaliser->getNamespace(),
                 identifier: $databaseIdentifier,
             );
 
-            $this->dataDirectory = $minimaliser->getSourceFolder() . 'Data' . DIRECTORY_SEPARATOR;
-            if (!file_exists($minimaliser->getSourceFolder() . 'Data')) {
-                mkdir($minimaliser->getSourceFolder() . 'Data');
-            }
+            $tables = [];
 
             foreach ($database->getTables() as $table) {
-                system('clear');
-
-                $fontBoldUnderlined = "\e[1;4m";
-                $fontClose = "\e[0m";
-
-                echo 'Generating object for table ' . $fontBoldUnderlined . $table->getName() . $fontClose . PHP_EOL;
-                $objectNameSingular = readline('Singular name of the object (' . $table->getObjectName() . '): ');
-                $objectNamePlural = readline('Plural name of the object (' . $table->getObjectNamePlural() . '): ');
-                $isComplete = readline('Is this a primary table? (Y/n)');
-
-                if ($objectNameSingular !== ''){
-                    $table->setObjectName($objectNameSingular);
-                }
-
-                if ($objectNamePlural !== ''){
-                    $table->setObjectNamePlural($objectNamePlural);
-                }
-
-                if (strtolower($isComplete) === 'n'){
-                    $table->setIsNotComplete();
+                $table = $this->initialiseObjectDetails($table);
+                if ($table !== null){
+                    $tables[] = $table;
                 }
             }
 
-            //FileFactory::createFile(type: Generator::Builders,twig: $this->twig, dataDirectory: $this->dataDirectory, table: $table);
-            //generate Dictionary
-            //generate AbstractDataObject
-            //generate AbstractResourceBuilder
+            FileFactory::createFiles(
+                projectName: $projectName,
+                tables: $tables,
+            );
 
-            foreach ($database->getTables() as $table) {
-                $this->generateFiles($table);
+            foreach ($tables as $table) {
+                FileFactory::generateObjectFiles(
+                    table: $table,
+                );
             }
         } else {
             echo 'No databases specified in the .env file.';
@@ -122,27 +165,46 @@ class Minimaliser extends AbstractModel
 
     /**
      * @param TableObject $table
-     * @return void
-     * @throws Exception
+     * @return TableObject|null
      */
-    private function generateFiles(
+    private function initialiseObjectDetails(
         TableObject $table,
-    ): void
+    ): ?TableObject
     {
-        if (file_exists($this->dataDirectory . $table->getObjectNamePlural())) {
-            exec(sprintf("rm -rf %s", escapeshellarg($this->dataDirectory . $table->getObjectNamePlural())));
+        system('clear');
+
+        $fontBoldUnderlined = "\e[1;4m";
+        $fontClose = "\e[0m";
+
+        echo 'Generating object for table ' . $fontBoldUnderlined . $table->getName() . $fontClose . PHP_EOL;
+        $objectNameSingular = $this->readInput(prompt: 'Singular name of the object', defaultAnswer: $table->getObjectName());
+        $objectNamePlural = $this->readInput(prompt: 'Plural name of the object', defaultAnswer: $table->getObjectNamePlural());
+
+        if ($objectNameSingular !== ''){
+            $table->setObjectName($objectNameSingular);
         }
 
-        mkdir($this->dataDirectory . $table->getObjectNamePlural());
-
-        FileFactory::createObjectFile(type: Generator::Databases,twig: $this->twig, dataDirectory: $this->dataDirectory, table: $table);
-        
-        if ($table->isComplete()) {
-            FileFactory::createObjectFile(type: Generator::Builders,twig: $this->twig, dataDirectory: $this->dataDirectory, table: $table);
-            FileFactory::createObjectFile(type: Generator::DataObjects, twig: $this->twig, dataDirectory: $this->dataDirectory, table: $table);
-            //FileFactory::createObjectFile(type: Generator::Factories,twig: $this->twig, dataDirectory: $this->dataDirectory, table: $table);
-            //FileFactory::createObjectFile(type: Generator::IO,twig: $this->twig, dataDirectory: $this->dataDirectory, table: $table);
-            //FileFactory::createObjectFile(type: Generator::Validators,twig: $this->twig, dataDirectory: $this->dataDirectory, table: $table);
+        if ($objectNamePlural !== ''){
+            $table->setObjectNamePlural($objectNamePlural);
         }
+
+        $write = true;
+        if (file_exists($this->minimaliser->getDataDirectory() . $table->getObjectNamePlural())){
+            if ($this->readInput(prompt: 'The object ' . $fontBoldUnderlined . $table->getObjectNamePlural() . $fontClose . ' already exists. Overrite?', isYesNoAnswer: true, defaultAnswer: false) === true){
+                exec(sprintf("rm -rf %s", escapeshellarg($this->minimaliser->getDataDirectory() . $table->getObjectNamePlural())));
+            } else {
+                $write = false;
+            }
+        }
+
+        if ($write === false) {
+            return null;
+        }
+
+        if (!$this->readInput(prompt: 'Is this a primary table?', isYesNoAnswer: true, defaultAnswer: true)){
+            $table->setIsNotComplete();
+        }
+
+        return $table;
     }
 }

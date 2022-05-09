@@ -88,6 +88,13 @@ class TableObject implements MinimaliserObjectInterface
         $response->attributes->add(name: 'objectNamePlural', value: $this->objectNamePlural);
         $response->attributes->add(name: 'isComplete', value: $this->isComplete);
 
+        foreach ($this->fields as $field) {
+            if ($field->isPrimaryKey()){
+                $response->attributes->add(name: 'primaryKey', value: $field->getName());
+                break;
+            }
+        }
+
         $response->relationship('fields')->resourceLinkage->forceResourceList(true);
         foreach ($this->fields as $field) {
             $response->relationship('fields')->resourceLinkage->addResource($field->generateResourceObject());
@@ -150,5 +157,14 @@ class TableObject implements MinimaliserObjectInterface
     ): void
     {
         $this->isComplete = false;
+    }
+
+    /**
+     * @return string
+     */
+    public function getNamespace(
+    ): string
+    {
+        return $this->namespace;
     }
 }

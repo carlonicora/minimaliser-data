@@ -1,0 +1,61 @@
+<?php
+namespace {{ meta.namespace }}Enums;
+
+{% for table in data %}{% if table.attributes.isComplete == true %}
+use {{ meta.namespace }}Data\{{ table.attributes.objectNamePlural }}\Databases\{{ table.attributes.objectNamePlural }}Table;
+{% endif %}{% endfor %}
+
+enum {{ meta.projectName }}Dictionary: string
+{
+{% for table in data %}{% if table.attributes.isComplete == true %}
+    case {{ table.attributes.objectName }}='{{ table.id }}';
+{% endif %}{% endfor %}
+
+    /**
+     * @return string
+     */
+    public function getIdKey(
+    ): string
+    {
+        return match ($this) {
+{% for table in data %}{% if table.attributes.isComplete == true %}
+            self::{{ table.attributes.objectName }} => '{{ table.attributes.primaryKey}}',
+{% endif %}{% endfor %}
+        };
+    }
+
+    /**
+    * @return string
+    */
+    public function getEndpoint(
+    ): string
+    {
+        return match ($this) {
+{% for table in data %}{% if table.attributes.isComplete == true %}
+            self::{{ table.attributes.objectName }} => '{{ table.attributes.objectNamePlural|lower}}',
+{% endif %}{% endfor %}
+        };
+    }
+
+    /**
+    * @return string
+    */
+    public function getTableClass(
+    ): string
+    {
+        return match ($this) {
+{% for table in data %}{% if table.attributes.isComplete == true %}
+            self::{{ table.attributes.objectName }} => {{ table.attributes.objectNamePlural}}Table::class,
+{% endif %}{% endfor %}
+        };
+    }
+
+    /**
+    * @return string
+    */
+    public function getPlural(
+    ): string
+    {
+        return $this->getEndpoint();
+    }
+}

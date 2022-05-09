@@ -5,6 +5,7 @@ use CarloNicora\JsonApi\Objects\ResourceObject;
 use CarloNicora\Minimalism\MinimaliserData\Interfaces\MinimaliserObjectInterface;
 use CarloNicora\Minimalism\Services\MySQL\Enums\FieldOption;
 use CarloNicora\Minimalism\Services\MySQL\Enums\FieldType;
+use CarloNicora\Minimalism\Services\MySQL\Enums\SqlFieldType;
 use Exception;
 
 class FieldObject implements MinimaliserObjectInterface
@@ -20,7 +21,7 @@ class FieldObject implements MinimaliserObjectInterface
 
     /** @var bool  */
     private bool $isNullable;
-
+    
     /** @var FieldOption|null  */
     private ?FieldOption $option=null;
 
@@ -33,18 +34,19 @@ class FieldObject implements MinimaliserObjectInterface
     {
         $this->name = $field['Field'];
 
-        switch ($field['Type']){
-            case 'int':
-            case 'bigint':
-            case 'bigint unisgned':
-                $this->type = FieldType::Integer;
-                $this->phpType = 'int';
-                break;
-            default:
-                $this->type = FieldType::String;
-                $this->phpType = 'string';
-                break;
+        $length = null;
+        $fieldTypePart = explode('(', $field['Type']);
+        $fieldType = explode(' ', $fieldTypePart[0])[0];
+        $type = strtolower($fieldType);
+        if (count($fieldTypePart) > 1){
+            $length = explode(')', $fieldTypePart[1])[0];
+            if (!is_numeric($length)){
+                $length = null;
+            }
         }
+
+        $this->phpType = SqlFieldType::from($type)->getPhpType($length);
+        $this->type = SqlFieldType::from($type)->getFieldType();
 
         $this->isNullable = $field['NULL'] === 'YES';
 
@@ -75,7 +77,27 @@ class FieldObject implements MinimaliserObjectInterface
 
         $response->meta->add(name: 'option', value: $this->option->name);
         $response->meta->add(name: 'capitalisedName', value: ucfirst($this->name));
+        $response->meta->add(name: 'isId', value: $this->option === FieldOption::AutoIncrement);
+
 
         return $response;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isPrimaryKey(
+    ): bool
+    {
+        return ($this->option === FieldOption::AutoIncrement || $this->option === FieldOption::PrimaryKey);
+    }
+
+    /**
+     * @return string
+     */
+    public function getName(
+    ): string
+    {
+        return $this->name;
     }
 }

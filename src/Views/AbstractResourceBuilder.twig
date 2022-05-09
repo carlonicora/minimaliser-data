@@ -1,0 +1,86 @@
+<?php
+namespace {{ meta.namespace }}Data\Abstracts;
+
+use CarloNicora\JsonApi\Objects\Link;
+use CarloNicora\JsonApi\Objects\ResourceObject;
+use CarloNicora\Minimalism\Interfaces\Encrypter\Interfaces\EncrypterInterface;
+use {{ meta.namespace }}Enums\{{ meta.projectName }}Dictionary;
+use CarloNicora\Minimalism\Services\Path;
+use CarloNicora\Minimalism\Services\ResourceBuilder\Abstracts\AbstractResourceBuilder;
+use Exception;
+use UnitEnum;
+
+abstract class Abstract{{ meta.projectName }}ResourceBuilder extends AbstractResourceBuilder
+{
+    /** @var Abstract{{ meta.projectName }}DataObject  */
+    protected Abstract{{ meta.projectName }}DataObject $data;
+
+    /** @var string|null  */
+    protected ?string $hash=null;
+
+    /**
+     * @param EncrypterInterface $encrypter
+     * @param Path $path
+     */
+    public function __construct(
+        protected EncrypterInterface $encrypter,
+        protected Path $path,
+    )
+    {
+    }
+
+    /**
+     * @param {{ meta.projectName }}Dictionary $type
+     * @return ResourceObject
+     * @throws Exception
+     */
+    protected function create(
+        {{ meta.projectName }}Dictionary $type,
+    ): ResourceObject
+    {
+        $response = new ResourceObject(
+            type: $type->value,
+            id: $this->encrypter->encryptId($this->data->getId()),
+        );
+
+        //$response->meta->add(name: 'createdAt', value: date('Y-m-d H:i:s', $this->data->getCreatedAt()));
+        //$response->meta->add(name: 'updatedAt', value: date('Y-m-d H:i:s', $this->data->getUpdatedAt()));
+
+        $response->links->add(
+            new Link(
+                name: 'self',
+                href: $this->path->getUrl()
+                    . $type->getEndpoint()
+                    . '/' . $this->encrypter->encryptId($this->data->getId())
+                )
+        );
+
+        return $response;
+    }
+
+    /**
+    * @param ResourceObject $resource
+    * @param {{ meta.projectName }}Dictionary|UnitEnum $type
+    * @param int $id
+    * @param {{ meta.projectName }}Dictionary|UnitEnum|null $childType
+    * @return void
+    * @throws Exception
+    */
+    protected function addRelationshipRelatedLink(
+        ResourceObject $resource,
+        {{ meta.projectName }}Dictionary|UnitEnum $type,
+        int $id,
+        {{ meta.projectName }}Dictionary|UnitEnum|null $childType=null,
+    ): void
+    {
+        $resource->relationship($childType !== null ? $childType->getPlural() : $type->value)->links->add(
+            new Link(
+                name: 'related',
+                href: $this->path->getUrl()
+                    . $type->getEndpoint()
+                    . '/' . $this->encrypter->encryptId($id)
+                    . ($childType !== null ? '/' . $childType->getEndpoint() : '')
+            )
+        );
+    }
+}

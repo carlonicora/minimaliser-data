@@ -1,0 +1,149 @@
+<?php
+namespace {{ data.attributes.namespace }}Models;
+
+use CarloNicora\Minimalism\Enums\HttpCode;
+use CarloNicora\Minimalism\Exceptions\MinimalismException;
+use CarloNicora\Minimalism\Interfaces\Encrypter\Parameters\PositionedEncryptedParameter;
+use CarloNicora\Minimalism\Services\ResourceBuilder\Interfaces\ResourceableDataInterface;
+use CarloNicora\Minimalism\Services\ResourceBuilder\ResourceBuilder;
+use {{ data.attributes.namespace }}Models\Abstracts\Abstract{{ data.attributes.project }}Model;
+use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\Builders\{{ data.attributes.objectName }}Builder;
+use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\IO\{{ data.attributes.objectName }}IO;
+use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\Validators\{{ data.attributes.objectName }}CreateValidator;
+use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\DataObjects\{{ data.attributes.objectName }};
+use Exception;
+
+class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.project }}Model
+{
+    /**
+     * @param PositionedEncryptedParameter|null $id
+     * @param array|null $page
+     * @return HttpCode
+     * @throws Exception
+     */
+    public function get(
+        ?PositionedEncryptedParameter $id=null,
+        ?array $page=null,
+    ): HttpCode
+    {
+        if ($id !== null){
+            $this->readSingle($id->getValue());
+        } else {
+            $this->readList($page);
+        }
+
+        return HttpCode::Ok;
+    }
+
+    /**
+    * @param int $id
+    * @return void
+    * @throws Exception
+    */
+    private function readSingle(
+        int $id,
+    ): void
+    {
+        ${{ data.attributes.objectName | lower }} = $this->objectFactory->create({{ data.attributes.objectName }}IO::class)->readById(id: $id);
+
+        $this->document->addResource(
+            $this->builder->buildResource(
+                builderClass: {{ data.attributes.objectName }}Builder::class,
+                data: ${{ data.attributes.objectName | lower }},
+                cacheBuilder: null,
+            )
+        );
+    }
+
+    /**
+    * @param array|null $page
+    * @return void
+    * @throws Exception
+    */
+    private function readList(
+        ?array $page,
+    ): void
+    {
+        $page = $this->decryptPagination($page);
+        ${{ data.attributes.objectNamePlural }} = $this->objectFactory->create({{ data.attributes.objectName }}IO::class)->readList(page: $page);
+
+        $this->document->addResourceList(
+            $this->builder->buildResources(
+                builderClass: {{ data.attributes.objectName }}Builder::class,
+                data: ${{ data.attributes.objectNamePlural }},
+                cacheBuilder: null,
+            )
+        );
+    }
+
+    /**
+    * @param {{ data.attributes.objectName }}CreateValidator $payload
+    * @return HttpCode
+    * @throws Exception
+    */
+    public function post(
+        {{ data.attributes.objectName }}CreateValidator $payload,
+    ): HttpCode
+    {
+        /** @var {{ data.attributes.objectName }} ${{ data.attributes.objectName | lower }} */
+        ${{ data.attributes.objectName | lower }} = $this->builder->ingestResource(
+            dataClass: {{ data.attributes.objectName }}::class,
+            resource: $payload->getSingleResource(),
+        );
+
+        ${{ data.attributes.objectName | lower }} = $this->objectFactory->create({{ data.attributes.objectName }}IO::class)->insert(
+            {{ data.attributes.objectName | lower }}: ${{ data.attributes.objectName | lower }},
+        );
+
+        $this->document->addResource(
+            $this->builder->buildResource(
+                builderClass: {{ data.attributes.objectName }}Builder::class,
+                data: ${{ data.attributes.objectName | lower }},
+                cacheBuilder: null,
+            )
+        );
+
+        return HttpCode::Created;
+    }
+
+
+    /**
+    * @param {{ data.attributes.objectName }}CreateValidator $payload
+    * @return HttpCode
+    * @throws Exception
+    */
+    public function patch(
+        {{ data.attributes.objectName }}CreateValidator $payload,
+    ): HttpCode
+    {
+        /** @var ResourceableDataInterface $companie */
+        ${{ data.attributes.objectName | lower }} = $payload->getDataObject();
+
+        /** @var {{ data.attributes.objectName }} ${{ data.attributes.objectName | lower }} */
+        ${{ data.attributes.objectName | lower }} = $this->builder->ingestResource(
+            dataClass: {{ data.attributes.objectName }}::class,
+            resource: $payload->getSingleResource(),
+            dataObject: ${{ data.attributes.objectName | lower }},
+        );
+
+        $this->objectFactory->create({{ data.attributes.objectName }}IO::class)->update{{ data.attributes.objectName }}(
+            {{ data.attributes.objectName | lower }}: ${{ data.attributes.objectName | lower }},
+        );
+
+        return HttpCode::NoContent;
+    }
+
+    /**
+    * @param PositionedEncryptedParameter $id
+    * @return HttpCode
+    * @throws MinimalismException|Exception
+    */
+    public function delete(
+        PositionedEncryptedParameter $id,
+    ): HttpCode
+    {
+        $this->objectFactory->create({{ data.attributes.objectName }}IO::class)->deleteById($id->getValue());
+
+        return HttpCode::NoContent;
+    }
+}
