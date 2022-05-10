@@ -27,6 +27,7 @@ abstract class Abstract{{ meta.projectName }}ResourceBuilder extends AbstractRes
         protected Path $path,
     )
     {
+        parent::__construct($this->encrypter);
     }
 
     /**

@@ -14,6 +14,9 @@ class TableObject implements MinimaliserObjectInterface
     /** @var FieldObject[]  */
     private array $fields=[];
 
+    /** @var FieldObject|null  */
+    private ?FieldObject $primaryKey=null;
+
     /** @var string  */
     private string $objectName;
 
@@ -22,6 +25,9 @@ class TableObject implements MinimaliserObjectInterface
 
     /** @var bool  */
     private bool $isComplete=true;
+
+    /** @var FieldObject[]  */
+    private array $children=[];
 
     /**
      * @param SqlInterface $data
@@ -56,7 +62,15 @@ class TableObject implements MinimaliserObjectInterface
         );
 
         foreach ($fields as $field){
-            $this->fields[] = new FieldObject($field);
+            $newField = new FieldObject(
+                table: $this,
+                field: $field,
+            );
+            $this->fields[] = $newField;
+
+            if ($newField->isPrimaryKey()){
+                $this->primaryKey = $newField;
+            }
         }
     }
 
@@ -70,10 +84,30 @@ class TableObject implements MinimaliserObjectInterface
     }
 
     /**
+     * @return FieldObject[]
+     */
+    public function getFields(
+    ): array
+    {
+        return $this->fields;
+    }
+
+    /**
+     * @return FieldObject|null
+     */
+    public function getPrimaryKey(
+    ): ?FieldObject
+    {
+        return $this->primaryKey;
+    }
+
+    /**
+     * @param bool $limitToAttributes
      * @return ResourceObject
      * @throws Exception
      */
     public function generateResourceObject(
+        bool $limitToAttributes=false,
     ): ResourceObject
     {
         $response = new ResourceObject(
@@ -89,15 +123,33 @@ class TableObject implements MinimaliserObjectInterface
         $response->attributes->add(name: 'isComplete', value: $this->isComplete);
 
         foreach ($this->fields as $field) {
-            if ($field->isPrimaryKey()){
+            if ($field->isPrimaryKey()) {
                 $response->attributes->add(name: 'primaryKey', value: $field->getName());
+                $response->attributes->add(name: 'primaryKeyCapitalised', value: ucfirst($field->getName()));
                 break;
             }
         }
 
-        $response->relationship('fields')->resourceLinkage->forceResourceList(true);
-        foreach ($this->fields as $field) {
-            $response->relationship('fields')->resourceLinkage->addResource($field->generateResourceObject());
+        if (!$limitToAttributes) {
+            $response->relationship('fields')->resourceLinkage->forceResourceList(true);
+
+            foreach ($this->fields as $field) {
+                $response->relationship('fields')->resourceLinkage->addResource($field->generateResourceObject());
+
+                if ($field->getForeignKey() !== null){
+                    $response->relationship('parents')->resourceLinkage->forceResourceList(true);
+                    $response->relationship('parents')->resourceLinkage->addResource(
+                        resource: $field->getForeignKey()->generateResourceObject(limitToAttributes: true),
+                    );
+                }
+            }
+
+            if ($this->children !== []) {
+                $response->relationship('children')->resourceLinkage->forceResourceList(true);
+                foreach ($this->children as $childField) {
+                    $response->relationship('children')->resourceLinkage->addResource($childField->getTable()->generateResourceObject(limitToAttributes: true));
+                }
+            }
         }
 
         return $response;
@@ -166,5 +218,16 @@ class TableObject implements MinimaliserObjectInterface
     ): string
     {
         return $this->namespace;
+    }
+
+    /**
+     * @param FieldObject $field
+     * @return void
+     */
+    public function addChild(
+        FieldObject $field,
+    ): void
+    {
+        $this->children[] = $field;
     }
 }

@@ -16,13 +16,12 @@ class {{ data.attributes.objectName }}CreateValidator extends AbstractDataValida
         $this->documentValidator = new DocumentValidator();
 
         $resourceValidator = new ResourceValidator(type: '{{ data.attributes.objectNamePlural }}');
-
 {% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.meta.isId == false%}
+
         $resourceValidator->addAttributeValidator(new AttributeValidator(name: '{{ field.id }}'{% if field.attributes.isNullable == false %}, isRequired: true{% endif %}));
 {% endif %}{% endfor %}
-
         $this->documentValidator->addResourceValidator(
                 validator: $resourceValidator
         );
-        }
+    }
 }

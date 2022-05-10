@@ -28,6 +28,9 @@ class Minimaliser extends AbstractModel
     /** @var SqlInterface  */
     private SqlInterface $data;
 
+    /** @var DatabaseObject  */
+    private DatabaseObject $database;
+
     /**
      * @param MinimalismFactories $minimalismFactories
      * @param string|null $function
@@ -130,7 +133,7 @@ class Minimaliser extends AbstractModel
                 }
             }
 
-            $database = new DatabaseObject(
+            $this->database = new DatabaseObject(
                 data: $this->data,
                 projectName: $projectName,
                 namespace: $this->minimaliser->getNamespace(),
@@ -139,7 +142,7 @@ class Minimaliser extends AbstractModel
 
             $tables = [];
 
-            foreach ($database->getTables() as $table) {
+            foreach ($this->database->getTables() as $table) {
                 $table = $this->initialiseObjectDetails($table);
                 if ($table !== null){
                     $tables[] = $table;
@@ -201,10 +204,73 @@ class Minimaliser extends AbstractModel
             return null;
         }
 
-        if (!$this->readInput(prompt: 'Is this a primary table?', isYesNoAnswer: true, defaultAnswer: true)){
+        if ($this->readInput(prompt: 'Is this a many-to-many table?', isYesNoAnswer: true, defaultAnswer: false)){
             $table->setIsNotComplete();
+        }
+        
+        if ($this->readInput(prompt: 'Setup table relationship?', isYesNoAnswer: true, defaultAnswer: true)){
+            $this->initialiseTableRelationships($table);
         }
 
         return $table;
+    }
+
+    /**
+     * @param TableObject $table
+     * @return void
+     */
+    private function initialiseTableRelationships(
+        TableObject $table,
+    ): void
+    {
+        do {
+            $fields = 'Select the foreign key' . PHP_EOL;
+            foreach ($table->getFields() as $fieldKey => $field) {
+                $fields .= ' ' . $fieldKey . '. ' . $field->getName() . PHP_EOL;
+            }
+            $fields .= ' x. Exit' . PHP_EOL . PHP_EOL;
+            $fields .= '> ';
+
+            $selectedField = null;
+
+            while ($selectedField === null) {
+                system('clear');
+                $fieldId = $this->readInput(prompt: $fields);
+
+                if ($fieldId === 'x') {
+                    return;
+                }
+
+                if (is_numeric($fieldId) && (int)$fieldId < count($table->getFields())) {
+                    $selectedField = $fieldId;
+                }
+            }
+
+            $field = $table->getFields()[$selectedField];
+
+            $tablePrompt = 'Select the table the field ' . $field->getName() . ' is foreign key for' . PHP_EOL;
+            foreach ($this->database->getTables() as $tableKey => $tableSelection) {
+                $tablePrompt .= ' ' . $tableKey . '. ' . $tableSelection->getName() . PHP_EOL;
+            }
+            $tablePrompt .= ' x. Exit' . PHP_EOL . PHP_EOL;
+            $tablePrompt .= '> ';
+
+            $selectedTableId = null;
+
+            while ($selectedTableId === null) {
+                system('clear');
+                $tableId = $this->readInput(prompt: $tablePrompt);
+
+                if ($tableId === 'x') {
+                    break;
+                }
+
+                if (is_numeric($tableId) && (int)$tableId < count($this->database->getTables())) {
+                    $selectedTableId = $tableId;
+                }
+            }
+
+            $field->setForeignKey($this->database->getTables()[$selectedTableId]);
+        } while(true);
     }
 }

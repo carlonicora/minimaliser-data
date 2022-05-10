@@ -7,7 +7,6 @@ use CarloNicora\Minimalism\Interfaces\Sql\Enums\SqlComparison;
 use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\Databases\{{ data.attributes.objectNamePlural }}Table;
 use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\DataObjects\{{ data.attributes.objectName }};
 use CarloNicora\Minimalism\Services\MySQL\Factories\SqlQueryFactory;
-use CarloNicora\Minimalism\Services\MySQL\Factories\SqlTableFactory;
 use Exception;
 
 class {{ data.attributes.objectName }}IO extends AbstractSqlIO
@@ -115,7 +114,7 @@ class {{ data.attributes.objectName }}IO extends AbstractSqlIO
     {
         $factory = SqlQueryFactory::create({{ data.attributes.objectNamePlural }}Table::class)
             ->delete()
-            ->addParameter(field: {{ data.attributes.objectNamePlural }}Table::companyId, value: $id);
+            ->addParameter(field: {{ data.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }}, value: $id);
 
         $this->data->delete(
             queryFactory: $factory,

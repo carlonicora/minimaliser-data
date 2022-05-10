@@ -13,6 +13,12 @@ class FieldObject implements MinimaliserObjectInterface
     /** @var string  */
     private string $name;
 
+    /** @var SqlFieldType  */
+    private SqlFieldType $sqlFieldType;
+
+    /** @var int|null  */
+    private ?int $length=null;
+
     /** @var FieldType  */
     private FieldType $type;
 
@@ -25,10 +31,15 @@ class FieldObject implements MinimaliserObjectInterface
     /** @var FieldOption|null  */
     private ?FieldOption $option=null;
 
+    /** @var TableObject|null  */
+    private ?TableObject $foreignKey=null;
+
     /**
+     * @param TableObject $table
      * @param array $field
      */
     public function __construct(
+        private readonly TableObject $table,
         array $field,
     )
     {
@@ -42,13 +53,23 @@ class FieldObject implements MinimaliserObjectInterface
             $length = explode(')', $fieldTypePart[1])[0];
             if (!is_numeric($length)){
                 $length = null;
+            } else {
+                $this->length = $length;
             }
         }
 
-        $this->phpType = SqlFieldType::from($type)->getPhpType($length);
-        $this->type = SqlFieldType::from($type)->getFieldType();
+        $this->sqlFieldType = SqlFieldType::from($type);
 
-        $this->isNullable = $field['NULL'] === 'YES';
+        if ($this->sqlFieldType === SqlFieldType::timestamp) {
+            $this->phpType = 'int';
+        } elseif ($this->sqlFieldType === SqlFieldType::tinyint && $this->length === 1) {
+            $this->phpType = 'bool';
+        } else {
+            $this->phpType = $this->sqlFieldType->getPhpType($length);
+        }
+        $this->type = $this->sqlFieldType->getFieldType();
+
+        $this->isNullable = ($field['Null'] === 'YES');
 
         if ($field['Key'] === 'PRI'){
             if ($field['Extra'] === 'auto_increment'){
@@ -75,10 +96,20 @@ class FieldObject implements MinimaliserObjectInterface
         $response->attributes->add(name: 'phpType', value: $this->phpType);
         $response->attributes->add(name: 'type', value: $this->type->name);
 
-        $response->meta->add(name: 'option', value: $this->option->name);
+        if ($this->sqlFieldType === SqlFieldType::timestamp){
+            $response->meta->add(name: 'DbFieldType', value: 'DbFieldType::IntDateTime');
+        }
+
+        if ($this->option !== null) {
+            $response->meta->add(name: 'option', value: $this->option->name);
+        }
         $response->meta->add(name: 'capitalisedName', value: ucfirst($this->name));
         $response->meta->add(name: 'isId', value: $this->option === FieldOption::AutoIncrement);
-
+        
+        if ($this->foreignKey !== null && $this->foreignKey->isComplete()){
+            $response->meta->add(name: 'isForeignKey', value: true);
+            $response->relationship($this->foreignKey->getName())->resourceLinkage->addResource($this->foreignKey->getPrimaryKey()->generateResourceObject());
+        }
 
         return $response;
     }
@@ -99,5 +130,34 @@ class FieldObject implements MinimaliserObjectInterface
     ): string
     {
         return $this->name;
+    }
+
+    /**
+     * @param TableObject|null $foreignKey
+     */
+    public function setForeignKey(
+        ?TableObject $foreignKey
+    ): void
+    {
+        $foreignKey->addChild($this);
+        $this->foreignKey = $foreignKey;
+    }
+
+    /**
+     * @return TableObject
+     */
+    public function getTable(
+    ): TableObject
+    {
+        return $this->table;
+    }
+
+    /**
+     * @return TableObject|null
+     */
+    public function getForeignKey(
+    ): ?TableObject
+    {
+        return $this->foreignKey;
     }
 }
