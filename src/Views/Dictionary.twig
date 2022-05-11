@@ -19,7 +19,7 @@ enum {{ meta.projectName }}Dictionary: string
     {
         return match ($this) {
 {% for table in data %}
-            self::{{ table.attributes.objectName }} => '{{ table.attributes.objectName | lower}}',
+            self::{{ table.attributes.objectName }} => '{{ table.attributes.primaryKey }}',
 {% endfor %}
         };
     }
@@ -32,7 +32,7 @@ enum {{ meta.projectName }}Dictionary: string
     {
         return match ($this) {
 {% for table in data %}
-            self::{{ table.attributes.objectName }} => '{{ table.attributes.primaryKey }}',
+            self::{{ table.attributes.objectName }} => '{{ table.attributes.objectNamePlural | lower}}',
 {% endfor %}
         };
     }

@@ -20,11 +20,19 @@ class {{ data.attributes.objectName }}Validator extends AbstractValidator
         self::assertNotNull(actual: ${{ data.attributes.objectName | lower }}->id);
 
         self::validateResourceElement(ResourceElements::Meta, ${{ data.attributes.objectName | lower }}, ['createdAt','updatedAt']);
-        self::validateResourceElement(ResourceElements::Link, ${{ data.attributes.objectName | lower }}, ['self']);
         self::validateResourceElement(ResourceElements::Attribute, ${{ data.attributes.objectName | lower }}, [
 {% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{%if field.meta.isId == false%}{% if field.id != 'updatedAt' and field.id != 'createdAt'%}
             '{{ field.id }}',
 {% endif %}{% endif %}{% endfor %}
+        ]);
+        self::validateResourceElement(ResourceElements::Link, ${{ data.attributes.objectName | lower }}, ['self']);
+        self::validateResourceElement(ResourceElements::Relationship, ${{ data.attributes.objectName | lower }}, [
+{% if data.relationships['parents'] %}{% for parentTableIdentifier in data.relationships['parents'].data %}{% set parentTable = lookupIncluded('table', parentTableIdentifier.id, included) %}
+            '{{ parentTable.attributes.objectName | lower }}',
+{% endfor %}{% endif %}
+{% if data.relationships['children'] %}{% for childTableIdentifier in data.relationships['children'].data %}{% set childTable = lookupIncluded('table', childTableIdentifier.id, included) %}
+            '{{ childTable.attributes.objectNamePlural | lower }}',
+{% endfor %}{% endif %}
         ]);
     }
 }

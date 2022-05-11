@@ -102,7 +102,7 @@ class TestsFactory
         $document->forceResourceList();
         foreach ($tables as $table){
             if ($table->isComplete()) {
-                $document->addResource($table->generateResourceObject(limitToAttributes: true));
+                $document->addResource($table->generateResourceObject());
             }
         }
 

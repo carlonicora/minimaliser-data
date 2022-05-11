@@ -272,11 +272,11 @@ class Minimaliser extends AbstractModel
     ): void
     {
         do {
-            $fields = 'Select the foreign key' . PHP_EOL;
+            $fields = 'Select the foreign key (return to end)' . PHP_EOL;
             foreach ($table->getFields() as $fieldKey => $field) {
                 $fields .= ' ' . $fieldKey . '. ' . $field->getName() . PHP_EOL;
             }
-            $fields .= ' x. Exit' . PHP_EOL . PHP_EOL;
+            $fields .= PHP_EOL;
             $fields .= '> ';
 
             $selectedField = null;
@@ -285,7 +285,7 @@ class Minimaliser extends AbstractModel
                 system('clear');
                 $fieldId = $this->readInput(prompt: $fields);
 
-                if ($fieldId === 'x') {
+                if ($fieldId === '') {
                     return;
                 }
 
@@ -317,7 +317,7 @@ class Minimaliser extends AbstractModel
                     $selectedTableId = $tableId;
                 }
             }
-
+            
             $field->setForeignKey($this->database->getTables()[$selectedTableId]);
         } while(true);
     }
