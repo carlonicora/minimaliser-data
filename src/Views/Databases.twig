@@ -11,7 +11,7 @@ enum {{ data.attributes.objectNamePlural }}Table
 {
 {% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}
 
-    #[SqlField(fieldType: FieldType::{{ field.attributes.type }}{% if field.meta.option %} ,fieldOption: fieldOption::{{ field.meta.option }}{% endif %})]
+    #[SqlField(fieldType: FieldType::{{ field.attributes.type }}{% if field.meta.option %} ,fieldOption: FieldOption::{{ field.meta.option }}{% endif %})]
     case {{ field.id }};
 {% endfor %}
 }

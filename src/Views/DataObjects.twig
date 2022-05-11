@@ -20,7 +20,7 @@ class {{ data.attributes.objectName }} extends Abstract{{ data.attributes.projec
 {% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}
 
     /** @var {{ field.attributes.phpType }}{% if field.attributes.isNullable == true%}|null{% endif %}  */
-    #[DbField(field: {{ data.attributes.objectNamePlural }}Table::{{ field.id }}{% if field.meta.DbFieldType %}, FieldType: {{field.meta.DbFieldType}}{% endif %})]
+    #[DbField(field: {{ data.attributes.objectNamePlural }}Table::{{ field.id }}{% if field.meta.DbFieldType %}, fieldType: {{field.meta.DbFieldType}}{% endif %})]
     protected {% if field.attributes.isNullable == true%}?{% endif %}{{ field.attributes.phpType }} ${% if field.meta.isId == true%}id{% else %}{{ field.id }}{% endif %}{% if field.attributes.isNullable == true%}=null{% endif %};
 {% endfor %}
 {% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{%if field.meta.isId == false%}
