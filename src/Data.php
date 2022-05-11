@@ -3,6 +3,7 @@ namespace CarloNicora\Minimalism\MinimaliserData;
 
 use CarloNicora\Minimalism\Abstracts\AbstractService;
 use CarloNicora\Minimalism\MinimaliserData\Factories\FileFactory;
+use CarloNicora\Minimalism\MinimaliserData\Factories\TestsFactory;
 use CarloNicora\Minimalism\Services\Path;
 use CarloNicora\Minimalism\Services\Twig\Twig;
 use JsonException;
@@ -59,7 +60,8 @@ class Data extends AbstractService
 
         $composer = json_decode($composerJson, true, 512, JSON_THROW_ON_ERROR);
         $this->namespace = array_key_first($composer['autoload']['psr-4']);
-        $this->sourceFolder = $this->path->getRoot() .  DIRECTORY_SEPARATOR .  $composer['autoload']['psr-4'][$this->namespace] . DIRECTORY_SEPARATOR;
+        $this->sourceFolder = $this->path->getRoot() .  DIRECTORY_SEPARATOR .  $composer['autoload']['psr-4'][$this->namespace];
+        $testFolder = $this->path->getRoot() .  DIRECTORY_SEPARATOR .  $composer['autoload-dev']['psr-4'][$this->namespace . 'Tests\\'];
         $this->dataDirectory = $this->sourceFolder . 'Data' . DIRECTORY_SEPARATOR;
 
         if (!file_exists($this->dataDirectory)) {
@@ -75,6 +77,11 @@ class Data extends AbstractService
             twig: $this->twig,
             dataDirectory: $this->dataDirectory,
             sourceDirectory: $this->sourceFolder,
+        );
+
+        TestsFactory::initialise(
+            twig: $this->twig,
+            testsDirectory: $testFolder,
         );
     }
 

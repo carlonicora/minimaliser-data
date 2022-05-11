@@ -108,6 +108,10 @@ class FieldObject implements MinimaliserObjectInterface
         
         if ($this->foreignKey !== null && $this->foreignKey->isComplete()){
             $response->meta->add(name: 'isForeignKey', value: true);
+            $response->meta->add(name: 'tableName', value: $this->foreignKey->getName());
+            $response->meta->add(name: 'tableObjectName', value: $this->foreignKey->getObjectName());
+            $response->meta->add(name: 'tableObjectNamePlural', value: $this->foreignKey->getObjectNamePlural());
+
             $response->relationship($this->foreignKey->getName())->resourceLinkage->addResource($this->foreignKey->getPrimaryKey()->generateResourceObject());
         }
 

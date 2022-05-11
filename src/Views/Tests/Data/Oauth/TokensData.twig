@@ -1,0 +1,52 @@
+<?php
+namespace {{ meta.namespace }}Tests\Data\Oauth;
+
+use CarloNicora\Minimalism\Interfaces\Sql\Interfaces\SqlDataObjectInterface;
+use {{ meta.namespace }}Tests\Data\{{ meta.database }}\UsersData;
+use CarloNicora\Minimalism\Services\OAuth\Data\Token;
+use CarloNicora\Minimalism\Services\OAuth\Databases\OAuth\Tables\TokensTable;
+use CarloNicora\Minimalism\TestSuite\Interfaces\TableDataInterface;
+
+enum TokensData: string implements TableDataInterface
+{
+    case DefaultToken = 'bearerDefault';
+    case OtherToken = 'bearerOther';
+
+    /**
+     * @return string
+     */
+    public static function getTableClass(
+    ): string
+    {
+        return TokensTable::class;
+    }
+
+    /**
+     * @return SqlDataObjectInterface
+     */
+    public function row(
+    ): SqlDataObjectInterface
+    {
+        return match ($this) {
+            self::DefaultToken => $this->map(user: UsersData::Value1),
+            self::OtherToken => $this->map(user: UsersData::Value2),
+        };
+    }
+
+    /**
+    * @param UsersData $user
+    * @return Token
+    */
+    private function map(
+        UsersData $user,
+    ): Token
+    {
+        $response = new Token();
+        $response->setToken($this->value);
+        $response->setUserId($user->value);
+        $response->setAppId(AppsData::App1->value);
+        $response->setIsUser(true);
+
+        return $response;
+    }
+}

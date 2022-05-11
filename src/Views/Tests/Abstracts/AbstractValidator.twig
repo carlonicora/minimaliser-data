@@ -1,0 +1,40 @@
+<?php
+namespace {{ meta.namespace }}Tests\Abstracts;
+
+use CarloNicora\JsonApi\Objects\ResourceObject;
+use CarloNicora\Minimalism\TestSuite\Enums\ResourceElements;
+use PHPUnit\Framework\TestCase;
+
+class AbstractValidator extends TestCase
+{
+    /**
+     * @param ResourceElements $element
+     * @param ResourceObject $resource
+     * @param array $expectedElementValues
+     * @return void
+     */
+    protected static function validateResourceElement(
+        ResourceElements $element,
+        ResourceObject $resource,
+        array $expectedElementValues=[],
+    ): void
+    {
+        $count = match($element) {
+            ResourceElements::Attribute => $resource->attributes->count(),
+            ResourceElements::Link => $resource->links->count(),
+            ResourceElements::Meta => $resource->meta->count(),
+            ResourceElements::Relationship => count($resource->relationships),
+        };
+        self::assertEquals(expected: count($expectedElementValues), actual: $count);
+
+        foreach ($expectedElementValues as $expectedElementValue) {
+            $condition = match($element) {
+                ResourceElements::Attribute => $resource->attributes->has($expectedElementValue),
+                ResourceElements::Link => $resource->links->has($expectedElementValue),
+                ResourceElements::Meta => $resource->meta->has($expectedElementValue),
+                ResourceElements::Relationship => array_key_exists($expectedElementValue, $resource->relationships),
+            };
+            self::assertTrue(condition: $condition, message: $expectedElementValue . ' missing');
+        }
+    }
+}

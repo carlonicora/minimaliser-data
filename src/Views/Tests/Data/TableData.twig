@@ -1,0 +1,60 @@
+<?php
+namespace {{ meta.namespace }}Tests\Data\{{ meta.database }};
+
+use CarloNicora\Minimalism\Interfaces\Sql\Interfaces\SqlDataObjectInterface;
+use {{ meta.namespace }}Data\{{ data.attributes.objectNamePlural }}\Databases\{{ data.attributes.objectNamePlural }}Table;
+use {{ meta.namespace }}Data\{{ data.attributes.objectNamePlural }}\DataObjects\{{ data.attributes.objectName }};
+use CarloNicora\Minimalism\TestSuite\Interfaces\TableDataInterface;
+
+enum {{ data.attributes.objectNamePlural }}Data: int implements TableDataInterface
+{
+    case Value1=1;
+    case Value2=2;
+    case Value3=3;
+
+    /**
+     * @return string
+     */
+    public static function getTableClass(
+    ): string
+    {
+        return {{ data.attributes.objectNamePlural }}Table::class;
+    }
+
+    /**
+     * @return SqlDataObjectInterface
+     */
+    public function row(
+    ): SqlDataObjectInterface
+    {
+        return match($this) {
+{% for i in 1..3 %}
+            self::Value{{ i }} => $this->map(
+{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.meta.isId == false%}
+                {{ field.id}}:{% if field.meta.isForeignKey == true%}{{ field.meta.tableObjectNamePlural }}Data::Value{{ i }}{% else %}{% if field.attributes.phpType == 'string' %}'{{ field.id }}{{ i }}'{% elseif field.attributes.phpType == 'bool' %}true{% else %}{% if field.meta.DbFieldType == 'DbFieldType::IntDateTime' %}time(){% else %}{{ i }}{% endif %}{% endif %}{% endif %},
+{% endif %}{% endfor %}
+            ),
+{% endfor %}
+        };
+    }
+
+    /**
+{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.meta.isId == false%}
+    * @param {% if field.meta.isForeignKey == true%}{{ field.meta.tableObjectNamePlural }}Data{% else %}{{ field.attributes.phpType }}{% endif %} ${{ field.id }}
+{% endif %}{% endfor %}
+    * @return {{ data.attributes.objectName}}
+    */
+    private function map(
+{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.meta.isId == false%}
+        {% if field.meta.isForeignKey == true%}{{ field.meta.tableObjectNamePlural }}Data{% else %}{{ field.attributes.phpType }}{% endif %} ${{ field.id }},
+{% endif %}{% endfor %}
+    ): {{ data.attributes.objectName}}
+    {
+        $response = new {{ data.attributes.objectName}}();
+{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}
+        $response->set{% if field.meta.isId %}Id($this->value){% else %}{{ field.meta.capitalisedName}}(${{ field.id }}{% if field.meta.isForeignKey == true %}->value{% endif %}){% endif %};
+{% endfor %}
+
+        return $response;
+    }
+}

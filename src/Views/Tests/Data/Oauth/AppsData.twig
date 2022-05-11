@@ -1,0 +1,58 @@
+<?php
+namespace {{ meta.namespace }}Tests\Data\Oauth;
+
+use CarloNicora\Minimalism\Interfaces\Sql\Interfaces\SqlDataObjectInterface;
+use CarloNicora\Minimalism\Services\OAuth\Data\App;
+use CarloNicora\Minimalism\Services\OAuth\Databases\OAuth\Tables\AppsTable;
+use CarloNicora\Minimalism\TestSuite\Interfaces\TableDataInterface;
+
+enum AppsData: int implements TableDataInterface
+{
+    case App1 = 1;
+    case App2 = 2
+
+    /**
+     * @return string
+     */
+    public static function getTableClass(
+    ): string
+    {
+        return AppsTable::class;
+    }
+
+    /**
+     * @return SqlDataObjectInterface
+     */
+    public function row(
+    ): SqlDataObjectInterface
+    {
+        return match ($this) {
+            self::App1 => $this->map(name: 'app using the api', url: 'http://app.minimalism/returnauth', clientId: '0f626d858ac5bae30ab5169645cddc20fa8c55e1c02b95792d8c321171551e20'),
+            self::App2 => $this->map(name: 'Another app', url: 'http://anotherapp.minimalism/returnauth', clientId: '0f626d858ac5bae30ab5169645cddc20fa8c55e1c02b95792d8c321171551e21'),
+        };
+    }
+
+    /**
+    * @param string $name
+    * @param string $url
+    * @param string $clientId
+    * @return App
+    */
+    private function map(
+        string    $name,
+        string    $url,
+        string    $clientId
+    ): App
+    {
+        $response = new App();
+        $response->setAppId($this->value);
+        $response->setName($name);
+        $response->setUrl($url);
+        $response->setClientId($clientId);
+        $response->setIsTrusted(true);
+        $response->setUserId(1);
+        $response->setIsActive(true);
+
+        return $response;
+    }
+}

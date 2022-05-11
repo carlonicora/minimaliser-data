@@ -2,24 +2,15 @@
 namespace CarloNicora\Minimalism\MinimaliserData\Models;
 
 use CarloNicora\Minimalism\Abstracts\AbstractModel;
-use CarloNicora\Minimalism\Enums\HttpCode;
 use CarloNicora\Minimalism\Factories\MinimalismFactories;
 use CarloNicora\Minimalism\Interfaces\Sql\Interfaces\SqlInterface;
 use CarloNicora\Minimalism\MinimaliserData\Data;
 use CarloNicora\Minimalism\MinimaliserData\Factories\FileFactory;
+use CarloNicora\Minimalism\MinimaliserData\Factories\TestsFactory;
 use CarloNicora\Minimalism\MinimaliserData\Objects\DatabaseObject;
 use CarloNicora\Minimalism\MinimaliserData\Objects\TableObject;
 use Exception;
 
-/*
- * Ask for the name of the project (INPUT)
- * Read all the tables
- * Foreach Table (INPUT confirm endpoint + object name)
- * Create Dictionary
- * Abstract Data Object
- * Abstract Resource Builder
- * Foreach Table create Builders|Databases|DataObjects|Factories|IO|Validators
- */
 class Minimaliser extends AbstractModel
 {
     /** @var Data  */
@@ -30,6 +21,12 @@ class Minimaliser extends AbstractModel
 
     /** @var DatabaseObject  */
     private DatabaseObject $database;
+
+    /** @var string|null  */
+    private ?string $databaseIdentifier=null;
+
+    /** @var string  */
+    private string $projectName;
 
     /**
      * @param MinimalismFactories $minimalismFactories
@@ -102,31 +99,29 @@ class Minimaliser extends AbstractModel
     }
 
     /**
-     * @return HttpCode
+     * @return never
      * @throws Exception
      */
     public function cli(
-    ): HttpCode
+    ): never
     {
         system('clear');
-        $projectName = $this->readInput(prompt: 'Project Name');
-
-        $databaseIdentifier = null;
+        $this->projectName = $this->readInput(prompt: 'Project Name');
 
         if (array_key_exists('MINIMALISM_SERVICE_MYSQL', $_ENV) && $_ENV['MINIMALISM_SERVICE_MYSQL'] !== ''){
             $dbs = explode(',', $_ENV['MINIMALISM_SERVICE_MYSQL']);
             if (count($dbs) === 1){
-                $databaseIdentifier = $dbs[0];
+                $this->databaseIdentifier = $dbs[0];
             } else {
                 echo 'Available database:' . PHP_EOL;
                 foreach ($dbs as $dbKey => $dbName){
                     echo '  ' . $dbKey . '. ' . $dbName . PHP_EOL;
                 }
 
-                while ($databaseIdentifier === null) {
+                while ($this->databaseIdentifier === null) {
                     $input = $this->readInput(prompt: 'Select database to import');
                     if (is_numeric($input) || $input <= count($dbs) - 1){
-                        $databaseIdentifier = $dbs[$input];
+                        $this->databaseIdentifier = $dbs[$input];
                     } else {
                         echo 'Invalid selection';
                     }
@@ -135,9 +130,9 @@ class Minimaliser extends AbstractModel
 
             $this->database = new DatabaseObject(
                 data: $this->data,
-                projectName: $projectName,
+                projectName: $this->projectName,
                 namespace: $this->minimaliser->getNamespace(),
-                identifier: $databaseIdentifier,
+                identifier: $this->databaseIdentifier,
             );
 
             $tables = [];
@@ -149,21 +144,72 @@ class Minimaliser extends AbstractModel
                 }
             }
 
-            FileFactory::createFiles(
-                projectName: $projectName,
+            $this->writeObjects(
                 tables: $tables,
             );
 
-            foreach ($tables as $table) {
-                FileFactory::generateObjectFiles(
-                    table: $table,
-                );
-            }
+            $this->writeTests(
+                tables: $tables,
+            );
         } else {
             echo 'No databases specified in the .env file.';
         }
 
         exit;
+    }
+
+    /**
+     * @param array $tables
+     * @return void
+     * @throws Exception
+     */
+    private function writeObjects(
+        array $tables,
+    ): void
+    {
+        FileFactory::createFiles(
+            projectName: $this->projectName,
+            tables: $tables,
+        );
+
+        foreach ($tables as $table) {
+            FileFactory::generateObjectFiles(
+                table: $table,
+            );
+        }
+    }
+
+    /**
+     * @param array $tables
+     * @return void
+     * @throws Exception
+     */
+    private function writeTests(
+        array $tables,
+    ): void
+    {
+        TestsFactory::createTestFiles(
+            namespace: $this->minimaliser->getNamespace(),
+            projectName: $this->projectName,
+            databaseName: $this->databaseIdentifier,
+            tables: $tables,
+        );
+
+        foreach ($tables as $table) {
+            TestsFactory::generateDataFiles(
+                namespace: $this->minimaliser->getNamespace(),
+                projectName: $this->projectName,
+                databaseName: $this->databaseIdentifier,
+                table: $table,
+            );
+
+            TestsFactory::generateFunctionalTestFiles(
+                namespace: $this->minimaliser->getNamespace(),
+                projectName: $this->projectName,
+                databaseName: $this->databaseIdentifier,
+                table: $table,
+            );
+        }
     }
 
     /**

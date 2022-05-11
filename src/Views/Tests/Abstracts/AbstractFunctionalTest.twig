@@ -1,0 +1,175 @@
+<?php
+namespace {{ meta.namespace }}Tests\Abstracts;
+
+use BackedEnum;
+use CarloNicora\Minimalism\Enums\HttpCode;
+use {{ meta.namespace }}Tests\Data\Oauth\TokensData;
+use CarloNicora\Minimalism\Interfaces\Encrypter\Interfaces\EncrypterInterface;
+use CarloNicora\Minimalism\Services\MySQL\MySQL;
+use CarloNicora\Minimalism\Services\Redis\Redis;
+use CarloNicora\Minimalism\TestSuite\Data\ApiRequest;
+use CarloNicora\Minimalism\TestSuite\Data\ApiResponse;
+use CarloNicora\Minimalism\TestSuite\Enums\Verbs;
+use CarloNicora\Minimalism\TestSuite\Factories\DataFactory;
+use CarloNicora\Minimalism\TestSuite\Factories\MinimalismServiceFactory;
+use Exception;
+use ReflectionClass;
+use RuntimeException;
+
+abstract class AbstractFunctionalTest extends \CarloNicora\Minimalism\TestSuite\Abstracts\AbstractFunctionalTest
+{
+    /** @var array|string[]  */
+    protected static array $paths=[];
+
+    /** @var Verbs|null */
+    protected static ?Verbs $verb = null;
+
+    /**
+     * @throws Exception
+     */
+    public static function setUpBeforeClass(): void
+    {
+        parent::setUpBeforeClass();
+
+        DataFactory::cleanDatabases(MinimalismServiceFactory::create(MySQL::class),__DIR__ . '/../Data');
+        DataFactory::generateTestData(MinimalismServiceFactory::create(MySQL::class),__DIR__ . '/../Data');
+
+        $redis = MinimalismServiceFactory::create(Redis::class);
+        $redis->remove($redis->getKeys('minimalism*'));
+
+        $reflection = new ReflectionClass(static::class);
+        $path = dirname($reflection->getFileName());
+        [,$functional] = explode('Functional/', $path);
+        self::$paths = explode('/', strtolower($functional));
+
+        $threeChars = substr(string: $reflection->getShortName(), offset: 0, length: 3);
+        static::$verb = match ($threeChars) {
+            'Pos'   => Verbs::Post,
+            'Put'    => Verbs::Put,
+            'Pat'  => Verbs::Patch,
+            'Del' => Verbs::Delete,
+            default  => Verbs::Get
+        };
+    }
+
+    /**
+    * @param array|null $parameters
+    * @return string
+    * @throws Exception
+    */
+    protected static function generateEndpoint(
+        ?array $parameters=[]
+    ): string
+    {
+        $encrypter = MinimalismServiceFactory::create(EncrypterInterface::class);
+
+        $response = '';
+        $parametersCount = 0;
+        foreach (self::$paths as $pathPart) {
+            $pathPart = strtolower($pathPart);
+
+            if ($pathPart !== 'services' && $pathPart !== 'models') {
+                $response .= '/' . $pathPart;
+
+                if (array_key_exists($parametersCount, $parameters)) {
+                    if (is_int($parameters[$parametersCount])) {
+                        $parameterValue = $encrypter->encryptId($parameters[$parametersCount]);
+                    } else if ($parameters[$parametersCount] instanceof BackedEnum) {
+                        if (is_int($parameters[$parametersCount]->value)) {
+                            $parameterValue = $encrypter->encryptId($parameters[$parametersCount]->value);
+                        } else {
+                            $parameterValue = $parameters[$parametersCount]->value;
+                        }
+                    } else {
+                        $parameterValue = $parameters[$parametersCount];
+                    }
+                    $response .= '/' . $parameterValue;
+                }
+
+                $parametersCount++;
+            } else {
+                $response = '';
+                $parametersCount = 0;
+            }
+        }
+
+        return $response;
+    }
+
+    /**
+    * @test
+    * @return void
+    * @throws Exception
+    */
+    public function SHOULD_401_WHEN_NoUser(
+    ): void
+    {
+        $response = self::call(
+            request: new ApiRequest(
+                verb: static::$verb,
+                endpoint: self::generateEndpoint(),
+            ),
+        );
+
+        self::assertEquals(expected: HttpCode::Unauthorized, actual: $response->getHttpCode(),message: $response->getError());
+    }
+
+    /**
+    * @param HttpCode|null $expectedResult
+    * @param string|null $expectedErrorDescription
+    * @param array|null $endpointParams
+    * @param string|null $bearer
+    * @return ApiResponse|null
+    * @throws Exception
+    */
+    protected function runTest(
+        ?HttpCode $expectedResult=null,
+        ?string $expectedErrorDescription = null,
+        ?array $endpointParams=[],
+        ?string $bearer=null,
+    ): ?ApiResponse
+    {
+        if ($bearer === null){
+            $bearer = TokensData::DefaultToken->value;
+        }
+
+        if ($expectedResult === null) {
+            $testName = $this->getName();
+            $expectedResult = HttpCode::tryFrom((int)explode('_', $testName)[1]);
+        }
+
+        $verb = null;
+        foreach ($this->getGroups() as $testGroups){
+            if (str_starts_with($testGroups, '__phpunit_covers')){
+                $covers = explode('::', $testGroups)[1];
+                $covers = explode('()', $covers, 2)[0];
+                $verb = Verbs::tryFrom(strtoupper($covers));
+                break;
+            }
+        }
+
+        if ($verb === null){
+            throw new RuntimeException('Test cover missing');
+        }
+
+        $response = self::call(
+            request: new ApiRequest(
+                verb: $verb,
+                endpoint: self::generateEndpoint($endpointParams),
+                bearer: $bearer,
+            ),
+        );
+
+        self::assertEquals(expected: $expectedResult, actual: $response->getHttpCode(), message: $response->getError());
+
+        if ($expectedResult !== null) {
+            self::assertEquals(expected: $expectedErrorDescription, actual: $response->getError());
+        }
+
+        if (in_array($response->getHttpCode(), [HttpCode::Ok, HttpCode::Created], true)){
+            return $response;
+        }
+
+        return null;
+    }
+}

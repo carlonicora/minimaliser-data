@@ -1,0 +1,29 @@
+<?php
+namespace {{ meta.namespace }}Tests\Validators;
+
+use CarloNicora\JsonApi\Objects\ResourceObject;
+use CarloNicora\Minimalism\TestSuite\Enums\ResourceElements;
+use {{ meta.namespace }}Enums\{{ meta.projectName }}Dictionary;
+use {{ meta.namespace }}Tests\Abstracts\AbstractValidator;
+
+class {{ data.attributes.objectName }}Validator extends AbstractValidator
+{
+    /**
+     * @param ResourceObject ${{ data.attributes.objectName | lower }}
+     * @return void
+     */
+    public static function validate(
+        ResourceObject ${{ data.attributes.objectName | lower }},
+    ): void
+    {
+        self::assertEquals(expected: {{ meta.projectName }}Dictionary::{{ data.attributes.objectName }}->value, actual: ${{ data.attributes.objectName | lower }}->type);
+        self::assertNotNull(actual: ${{ data.attributes.objectName | lower }}->id);
+
+        self::validateResourceElement(ResourceElements::Link, ${{ data.attributes.objectName | lower }}, ['self']);
+        self::validateResourceElement(ResourceElements::Attribute, ${{ data.attributes.objectName | lower }}, [
+{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{%if field.meta.isId == false%}
+            '{{ field.id }}',
+{% endif %}{% endfor %}
+        ]);
+    }
+}
