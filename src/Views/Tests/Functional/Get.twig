@@ -18,7 +18,7 @@ class Get{{ data.attributes.objectNamePlural }} extends AbstractFunctionalTest
     public function SHOULD_Return{{ data.attributes.objectNamePlural }}_WHEN_UserRequests{{ data.attributes.objectNamePlural }}(
     ): void
     {
-        $response = $this->runTest(
+        $response = $this->runApiCall(
             expectedResult: HttpCode::Ok,
         );
 
@@ -36,7 +36,7 @@ class Get{{ data.attributes.objectNamePlural }} extends AbstractFunctionalTest
     public function SHOULD_Return{{ data.attributes.objectName }}_WHEN_UserRequests{{ data.attributes.objectName }}(
     ): void
     {
-        $response = $this->runTest(
+        $response = $this->runApiCall(
             expectedResult: HttpCode::Ok,
             endpointParams: [{{ data.attributes.objectNamePlural }}Data::Value1->value],
         );
