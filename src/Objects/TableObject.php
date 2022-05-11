@@ -81,6 +81,7 @@ class TableObject implements MinimaliserObjectInterface
                         overrideDatabaseIdentifier: $databaseIdentifier,
                     )->setSql('ALTER TABLE ' . $this->name . ' ADD COLUMN `createdAt` timestamp NOT NULL;');
 
+                    /** @noinspection UnusedFunctionResultInspection */
                     $data->read(
                         queryFactory: $factory,
                     );
@@ -92,6 +93,7 @@ class TableObject implements MinimaliserObjectInterface
                         overrideDatabaseIdentifier: $databaseIdentifier,
                     )->setSql('ALTER TABLE ' . $this->name . ' ADD COLUMN `updatedAt` timestamp NOT NULL;');
 
+                    /** @noinspection UnusedFunctionResultInspection */
                     $data->read(
                         queryFactory: $factory,
                     );
@@ -186,7 +188,9 @@ class TableObject implements MinimaliserObjectInterface
             if ($this->children !== []) {
                 $response->relationship('children')->resourceLinkage->forceResourceList(true);
                 foreach ($this->children as $childField) {
-                    $response->relationship('children')->resourceLinkage->addResource($childField->getTable()->generateResourceObject(limitToAttributes: true));
+                    $response->relationship('children')->resourceLinkage->addResource(
+                        $childField->getTable()->generateResourceObject(limitToAttributes: true)
+                    );
                 }
             }
         }
@@ -268,5 +272,14 @@ class TableObject implements MinimaliserObjectInterface
     ): void
     {
         $this->children[] = $field;
+    }
+
+    /**
+     * @return FieldObject[]
+     */
+    public function getChildren(
+    ): array
+    {
+        return $this->children;
     }
 }

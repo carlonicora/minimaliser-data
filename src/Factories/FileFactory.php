@@ -7,6 +7,7 @@ use CarloNicora\Minimalism\MinimaliserData\Enums\SharedFile;
 use CarloNicora\Minimalism\MinimaliserData\Objects\TableObject;
 use CarloNicora\Minimalism\Services\Twig\Twig;
 use Exception;
+use RuntimeException;
 
 class FileFactory
 {
@@ -45,7 +46,9 @@ class FileFactory
         TableObject $table,
     ): void
     {
-        mkdir(self::$dataDirectory . $table->getObjectNamePlural());
+        if (!mkdir($concurrentDirectory = self::$dataDirectory . $table->getObjectNamePlural()) && !is_dir($concurrentDirectory)) {
+            throw new RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
+        }
         
         self::createObjectFile(type: Generator::Databases,table: $table);
         self::createObjectFile(type: Generator::DataObjects, table: $table);
@@ -58,34 +61,50 @@ class FileFactory
             self::createObjectFile(type: Generator::CreatorValidators, table: $table);
             self::createObjectFile(type: Generator::Models, table: $table);
             self::createObjectFile(type: Generator::Caches, table: $table);
+            
+            foreach ($table->getChildren() ?? [] as $foreignKey){
+                self::createObjectFile(type: Generator::ChildModels, table: $table, childTable: $foreignKey->getTable());
+            }
         }
     }
 
     /**
      * @param Generator $type
      * @param TableObject $table
+     * @param TableObject|null $childTable
      * @return void
      * @throws Exception
      */
     private static function createObjectFile(
         Generator $type,
         TableObject $table,
+        ?TableObject $childTable=null,
     ): void
     {
-        $folderName = self::$sourceDirectory . $type->getDataSubfolder($table);
-        if (!file_exists($folderName)){
-            mkdir($folderName);
+        $folderName = self::$sourceDirectory . $type->getDataSubfolder(table: $table);
+        if (!is_dir($folderName) && !mkdir($folderName, true) && !is_dir($folderName)) {
+            throw new RuntimeException(sprintf('Directory "%s" was not created', $folderName));
         }
 
         $document = new Document();
-        $document->addResource($table->generateResourceObject());
+
+        $tableResource = $table->generateResourceObject();
+        if ($childTable !== null){
+            $tableResource->meta->add(name: 'childTable', value: $childTable->getName());
+        }
+        $document->addResource($tableResource);
+
 
         $file = self::$twig->transform(
             document: $document,
             viewFile: $type->name,
         );
 
-        file_put_contents($folderName . $type->getFileName($table), $file);
+        if ($childTable === null) {
+            file_put_contents($folderName . $type->getFileName(table: $table), $file);
+        } else {
+            file_put_contents($folderName . $type->getFileName(table: $childTable), $file);
+        }
     }
 
     /**
@@ -110,18 +129,18 @@ class FileFactory
         }
 
         $enumDirectory = self::$sourceDirectory . 'Enums';
-        if (!file_exists($enumDirectory)){
-            mkdir($enumDirectory);
+        if (!is_dir($enumDirectory) && !mkdir($enumDirectory) && !is_dir($enumDirectory)) {
+            throw new RuntimeException(sprintf('Directory "%s" was not created', $enumDirectory));
         }
 
         $modelsDirectory = self::$sourceDirectory . 'Models';
-        if (!file_exists($modelsDirectory)){
-            mkdir($modelsDirectory);
+        if (!is_dir($modelsDirectory) && !mkdir($modelsDirectory) && !is_dir($modelsDirectory)) {
+            throw new RuntimeException(sprintf('Directory "%s" was not created', $modelsDirectory));
         }
 
-        $modelsDirectory = $modelsDirectory . DIRECTORY_SEPARATOR . 'Abstracts';
-        if (!file_exists($modelsDirectory)){
-            mkdir($modelsDirectory);
+        $modelsDirectory .= DIRECTORY_SEPARATOR . 'Abstracts';
+        if (!is_dir($modelsDirectory) && !mkdir($modelsDirectory) && !is_dir($modelsDirectory)) {
+            throw new RuntimeException(sprintf('Directory "%s" was not created', $modelsDirectory));
         }
 
         $file = self::$twig->transform(
@@ -132,8 +151,8 @@ class FileFactory
         file_put_contents($enumDirectory . DIRECTORY_SEPARATOR . SharedFile::Dictionary->getFileName($projectName), $file);
         
         $abstractDirectory = self::$dataDirectory . 'Abstracts';
-        if (!file_exists($abstractDirectory)){
-            mkdir($abstractDirectory);
+        if (!is_dir($abstractDirectory) && !mkdir($abstractDirectory) && !is_dir($abstractDirectory)) {
+            throw new RuntimeException(sprintf('Directory "%s" was not created', $abstractDirectory));
         }
 
         $file = self::$twig->transform(

@@ -47,10 +47,10 @@ class FieldObject implements MinimaliserObjectInterface
 
         $length = null;
         $fieldTypePart = explode('(', $field['Type']);
-        $fieldType = explode(' ', $fieldTypePart[0])[0];
+        $fieldType = explode(' ', $fieldTypePart[0], 2)[0];
         $type = strtolower($fieldType);
         if (count($fieldTypePart) > 1){
-            $length = explode(')', $fieldTypePart[1])[0];
+            $length = explode(')', $fieldTypePart[1], 2)[0];
             if (!is_numeric($length)){
                 $length = null;
             } else {
@@ -112,7 +112,7 @@ class FieldObject implements MinimaliserObjectInterface
             $response->meta->add(name: 'tableObjectName', value: $this->foreignKey->getObjectName());
             $response->meta->add(name: 'tableObjectNamePlural', value: $this->foreignKey->getObjectNamePlural());
 
-            $response->relationship($this->foreignKey->getName())->resourceLinkage->addResource($this->foreignKey->getPrimaryKey()->generateResourceObject());
+            $response->relationship($this->foreignKey->getName())->resourceLinkage->addResource($this->foreignKey->getPrimaryKey()?->generateResourceObject());
         }
 
         return $response;
@@ -137,10 +137,10 @@ class FieldObject implements MinimaliserObjectInterface
     }
 
     /**
-     * @param TableObject|null $foreignKey
+     * @param TableObject $foreignKey
      */
     public function setForeignKey(
-        ?TableObject $foreignKey
+        TableObject $foreignKey
     ): void
     {
         $foreignKey->addChild($this);
@@ -163,5 +163,14 @@ class FieldObject implements MinimaliserObjectInterface
     ): ?TableObject
     {
         return $this->foreignKey;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getLength(
+    ): int|null
+    {
+        return $this->length;
     }
 }

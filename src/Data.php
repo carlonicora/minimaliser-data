@@ -7,6 +7,7 @@ use CarloNicora\Minimalism\MinimaliserData\Factories\TestsFactory;
 use CarloNicora\Minimalism\Services\Path;
 use CarloNicora\Minimalism\Services\Twig\Twig;
 use JsonException;
+use RuntimeException;
 
 class Data extends AbstractService
 {
@@ -49,7 +50,7 @@ class Data extends AbstractService
     private function initialiseComposer(
     ): void
     {
-        if (!file_exists($this->path->getRoot() . DIRECTORY_SEPARATOR . 'composer.json')){
+        if (!is_file($this->path->getRoot() . DIRECTORY_SEPARATOR . 'composer.json')){
             echo 'Cannot find composer.json';
             exit;
         }
@@ -64,8 +65,8 @@ class Data extends AbstractService
         $testFolder = $this->path->getRoot() .  DIRECTORY_SEPARATOR .  $composer['autoload-dev']['psr-4'][$this->namespace . 'Tests\\'];
         $this->dataDirectory = $this->sourceFolder . 'Data' . DIRECTORY_SEPARATOR;
 
-        if (!file_exists($this->dataDirectory)) {
-            mkdir($this->dataDirectory);
+        if (!is_dir($this->dataDirectory) && !mkdir($concurrentDirectory = $this->dataDirectory) && !is_dir($concurrentDirectory)) {
+            throw new RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
         }
 
         if (!file_exists($this->sourceFolder)){

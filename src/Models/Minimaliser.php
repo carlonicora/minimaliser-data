@@ -87,12 +87,10 @@ class Minimaliser extends AbstractModel
                         break;
                 }
             }
+        } else if ($defaultAnswer !== null && $textResponse === ''){
+            $response = $defaultAnswer;
         } else {
-            if ($defaultAnswer !== null && $textResponse === ''){
-                $response = $defaultAnswer;
-            } else {
-                $response = $textResponse;
-            }
+            $response = $textResponse;
         }
 
         return $response;
@@ -120,7 +118,7 @@ class Minimaliser extends AbstractModel
 
                 while ($this->databaseIdentifier === null) {
                     $input = $this->readInput(prompt: 'Select database to import');
-                    if (is_numeric($input) || $input <= count($dbs) - 1){
+                    if (is_numeric($input) && $input <= count($dbs) - 1){
                         $this->databaseIdentifier = $dbs[$input];
                     } else {
                         echo 'Invalid selection';
@@ -137,10 +135,10 @@ class Minimaliser extends AbstractModel
 
             $tables = [];
 
-            foreach ($this->database->getTables() as $table) {
-                $table = $this->initialiseObjectDetails($table);
-                if ($table !== null){
-                    $tables[] = $table;
+            foreach ($this->database->getTables() ?? [] as $table) {
+                $selectedTable = $this->initialiseObjectDetails($table);
+                if ($selectedTable !== null){
+                    $tables[] = $selectedTable;
                 }
             }
 
@@ -285,7 +283,7 @@ class Minimaliser extends AbstractModel
                 system('clear');
                 $fieldId = $this->readInput(prompt: $fields);
 
-                if ($fieldId === '') {
+                if ($fieldId === '' || $fieldId === 'x') {
                     return;
                 }
 

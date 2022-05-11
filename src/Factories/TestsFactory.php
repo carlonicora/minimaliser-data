@@ -5,6 +5,7 @@ use CarloNicora\JsonApi\Document;
 use CarloNicora\Minimalism\MinimaliserData\Objects\TableObject;
 use CarloNicora\Minimalism\Services\Twig\Twig;
 use Exception;
+use RuntimeException;
 
 class TestsFactory
 {
@@ -43,19 +44,30 @@ class TestsFactory
         array $tables,
     ): void
     {
-        $folders = glob(self::$testsDirectory . '*', GLOB_NOSORT);
-        foreach ($folders as $folder){
+        foreach (glob(self::$testsDirectory . '*', GLOB_NOSORT) as $folder){
             if ($folder !== '.' && $folder !== '..') {
                 exec(sprintf("rm -rf %s", escapeshellarg($folder)));
             }
         }
 
-        mkdir(self::$testsDirectory . 'Abstracts');
-        mkdir(self::$testsDirectory . 'Data');
-        mkdir(self::$testsDirectory . 'Data' . DIRECTORY_SEPARATOR . 'Oauth');
-        mkdir(self::$testsDirectory . 'Data' . DIRECTORY_SEPARATOR . $databaseName);
-        mkdir(self::$testsDirectory . 'Functional');
-        mkdir(self::$testsDirectory . 'Validators');
+        if (!mkdir($concurrentDirectory = self::$testsDirectory . 'Abstracts') && !is_dir($concurrentDirectory)) {
+            throw new RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
+        }
+        if (!mkdir($concurrentDirectory = self::$testsDirectory . 'Data') && !is_dir($concurrentDirectory)) {
+            throw new RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
+        }
+        if (!mkdir($concurrentDirectory = self::$testsDirectory . 'Data' . DIRECTORY_SEPARATOR . 'Oauth') && !is_dir($concurrentDirectory)) {
+            throw new RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
+        }
+        if (!mkdir($concurrentDirectory = self::$testsDirectory . 'Data' . DIRECTORY_SEPARATOR . $databaseName) && !is_dir($concurrentDirectory)) {
+            throw new RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
+        }
+        if (!mkdir($concurrentDirectory = self::$testsDirectory . 'Functional') && !is_dir($concurrentDirectory)) {
+            throw new RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
+        }
+        if (!mkdir($concurrentDirectory = self::$testsDirectory . 'Validators') && !is_dir($concurrentDirectory)) {
+            throw new RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
+        }
 
         $document = new Document();
         $document->meta->add(name: 'namespace', value: $namespace);
@@ -67,21 +79,21 @@ class TestsFactory
             viewFile: 'Tests/Abstracts/AbstractFunctionalTest',
         );
 
-        file_put_contents(self::$testsDirectory . 'Abstracts' . DIRECTORY_SEPARATOR . 'AbstractFunctionalTest.php', $file);
+        file_put_contents(self::$testsDirectory . 'Abstracts' . DIRECTORY_SEPARATOR . 'AbstractFunctionalTest.php', $file, LOCK_EX);
 
         $file = self::$twig->transform(
             document: $document,
             viewFile: 'Tests/Data/Oauth/AppsData',
         );
 
-        file_put_contents(self::$testsDirectory . 'Data' . DIRECTORY_SEPARATOR . 'Oauth' . DIRECTORY_SEPARATOR . 'AppsData.php', $file);
+        file_put_contents(self::$testsDirectory . 'Data' . DIRECTORY_SEPARATOR . 'Oauth' . DIRECTORY_SEPARATOR . 'AppsData.php', $file, LOCK_EX);
 
         $file = self::$twig->transform(
             document: $document,
             viewFile: 'Tests/Data/Oauth/TokensData',
         );
 
-        file_put_contents(self::$testsDirectory . 'Data' . DIRECTORY_SEPARATOR . 'Oauth' . DIRECTORY_SEPARATOR . 'TokensData.php', $file);
+        file_put_contents(self::$testsDirectory . 'Data' . DIRECTORY_SEPARATOR . 'Oauth' . DIRECTORY_SEPARATOR . 'TokensData.php', $file, LOCK_EX);
 
 
 
@@ -95,7 +107,7 @@ class TestsFactory
                     viewFile: 'Tests/Validators/TableValidator',
                 );
 
-                file_put_contents(self::$testsDirectory . 'Validators' . DIRECTORY_SEPARATOR . $table->getObjectName() . 'Validator.php', $file);
+                file_put_contents(self::$testsDirectory . 'Validators' . DIRECTORY_SEPARATOR . $table->getObjectName() . 'Validator.php', $file, LOCK_EX);
             }
         }
 
@@ -111,7 +123,7 @@ class TestsFactory
             viewFile: 'Tests/Abstracts/AbstractValidator',
         );
 
-        file_put_contents(self::$testsDirectory . 'Abstracts' . DIRECTORY_SEPARATOR . 'AbstractValidator.php', $file);
+        file_put_contents(self::$testsDirectory . 'Abstracts' . DIRECTORY_SEPARATOR . 'AbstractValidator.php', $file, LOCK_EX);
     }
 
     /**
@@ -143,7 +155,7 @@ class TestsFactory
             viewFile: 'Tests/Data/TableData',
         );
 
-        file_put_contents(self::$testsDirectory . 'Data' . DIRECTORY_SEPARATOR . $databaseName . DIRECTORY_SEPARATOR . $table->getObjectNamePlural() .  'Data.php', $file);
+        file_put_contents(self::$testsDirectory . 'Data' . DIRECTORY_SEPARATOR . $databaseName . DIRECTORY_SEPARATOR . $table->getObjectNamePlural() .  'Data.php', $file, LOCK_EX);
     }
 
     /**
@@ -161,7 +173,9 @@ class TestsFactory
         TableObject $table,
     ): void
     {
-        mkdir(self::$testsDirectory . 'Functional' . DIRECTORY_SEPARATOR . $table->getObjectNamePlural());
+        if (!mkdir($concurrentDirectory = self::$testsDirectory . 'Functional' . DIRECTORY_SEPARATOR . $table->getObjectNamePlural()) && !is_dir($concurrentDirectory)) {
+            throw new RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
+        }
 
         $document = new Document();
         $document->meta->add(name: 'namespace', value: $namespace);
@@ -177,6 +191,6 @@ class TestsFactory
             viewFile: 'Tests/Functional/Get',
         );
 
-        file_put_contents(self::$testsDirectory . 'Functional' . DIRECTORY_SEPARATOR . $table->getObjectNamePlural() . DIRECTORY_SEPARATOR . 'Get' . $table->getObjectNamePlural() .  '.php', $file);
+        file_put_contents(self::$testsDirectory . 'Functional' . DIRECTORY_SEPARATOR . $table->getObjectNamePlural() . DIRECTORY_SEPARATOR . 'Get' . $table->getObjectNamePlural() .  '.php', $file, LOCK_EX);
     }
 }

@@ -30,6 +30,7 @@ class DatabaseObject
             overrideDatabaseIdentifier: $identifier,
         )->setSql('SHOW TABLES;');
 
+        /** @noinspection OneTimeUseVariablesInspection */
         $tables = $data->read(
             queryFactory: $factory,
         );

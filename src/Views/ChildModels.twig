@@ -1,0 +1,12 @@
+meta: {{ data.meta.childTable }}
+{% set table = false %}
+{% for childTableIdentifier in data.relationships['children'].data %}
+    - {{ childTableIdentifier.id }}
+{% if childTableIdentifier.id == data.meta.childTable %}
+{% set table = lookupIncluded('table', childTableIdentifier.id, included) %}
+{% endif %}
+{% endfor %}
+
+Table: {{ data.id }}
+Child Table: {{ data.meta.childTable }}
+Child Table: {{ table.id }}

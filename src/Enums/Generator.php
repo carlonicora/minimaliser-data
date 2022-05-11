@@ -14,6 +14,7 @@ Enum Generator
     case UpdaterValidators;
     case Models;
     case Caches;
+    case ChildModels;
 
     /**
      * @param TableObject $table
@@ -31,7 +32,7 @@ Enum Generator
             self::IO => $table->getObjectName() . 'IO',
             self::CreatorValidators => $table->getObjectName() . 'CreateValidator',
             self::UpdaterValidators => $table->getObjectName() . 'EditValidator',
-            self::Models => $table->getObjectNamePlural(),
+            self::Models, self::ChildModels => $table->getObjectNamePlural(),
             self::Caches => $table->getObjectNamePlural() . 'CacheFactory',
         };
 
@@ -50,6 +51,7 @@ Enum Generator
             self::Builders, self::Databases, self::DataObjects, self::IO, self::Factories, self::Caches => 'Data' . DIRECTORY_SEPARATOR . $table->getObjectNamePlural() . DIRECTORY_SEPARATOR . $this->name,
             self::Models => $this->name,
             self::CreatorValidators, self::UpdaterValidators => 'Data' . DIRECTORY_SEPARATOR . $table->getObjectNamePlural() . DIRECTORY_SEPARATOR . 'Validators',
+            self::ChildModels => self::Models->name . DIRECTORY_SEPARATOR . $table->getObjectNamePlural(),
         };
 
         return $response . DIRECTORY_SEPARATOR;
