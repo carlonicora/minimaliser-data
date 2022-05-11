@@ -8,6 +8,8 @@ use {{ meta.namespace }}Enums\{{ meta.projectName }}Dictionary;
 use CarloNicora\Minimalism\Services\MySQL\Traits\SqlDataObjectTrait;
 use CarloNicora\Minimalism\Services\Path;
 use CarloNicora\Minimalism\Services\ResourceBuilder\Interfaces\ResourceableDataInterface;
+use CarloNicora\Minimalism\Interfaces\Sql\Attributes\DbField;
+use CarloNicora\Minimalism\Interfaces\Sql\Enums\DbFieldType;
 
 abstract class Abstract{{ meta.projectName }}DataObject implements SqlDataObjectInterface, ResourceableDataInterface
 {
@@ -18,6 +20,15 @@ abstract class Abstract{{ meta.projectName }}DataObject implements SqlDataObject
 
     /** @var int  */
     protected int $id;
+
+
+    /** @var int  */
+    #[DbField(fieldType: DbFieldType::IntDateTime)]
+    protected int $createdAt;
+
+    /** @var int  */
+    #[DbField(fieldType: DbFieldType::IntDateTime)]
+    protected int $updatedAt;
 
     /**
      * @param ObjectFactory|null $objectFactory
@@ -37,4 +48,10 @@ abstract class Abstract{{ meta.projectName }}DataObject implements SqlDataObject
 
     /** @param int $id */
     public function setId(int $id): void{$this->id = $id;}
+
+    /** @return int */
+    public function getCreatedAt(): int{return $this->createdAt;}
+
+    /** @return int */
+    public function getUpdatedAt(): int{return $this->updatedAt;}
 }

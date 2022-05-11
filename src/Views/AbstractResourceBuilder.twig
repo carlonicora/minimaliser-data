@@ -44,8 +44,8 @@ abstract class Abstract{{ meta.projectName }}ResourceBuilder extends AbstractRes
             id: $this->encrypter->encryptId($this->data->getId()),
         );
 
-        //$response->meta->add(name: 'createdAt', value: date('Y-m-d H:i:s', $this->data->getCreatedAt()));
-        //$response->meta->add(name: 'updatedAt', value: date('Y-m-d H:i:s', $this->data->getUpdatedAt()));
+        $response->meta->add(name: 'createdAt', value: date('Y-m-d H:i:s', $this->data->getCreatedAt()));
+        $response->meta->add(name: 'updatedAt', value: date('Y-m-d H:i:s', $this->data->getUpdatedAt()));
 
         $response->links->add(
             new Link(

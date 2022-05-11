@@ -52,14 +52,53 @@ class TableObject implements MinimaliserObjectInterface
 
         $this->objectNamePlural = $this->objectName . 's';
 
-        $factory = SqlQueryFactory::create(
-            tableClass: TableDefinitionTable::class,
-            overrideDatabaseIdentifier: $databaseIdentifier,
-        )->setSql('DESCRIBE ' . $this->name . ';');
+        do {
+            $factory = SqlQueryFactory::create(
+                tableClass: TableDefinitionTable::class,
+                overrideDatabaseIdentifier: $databaseIdentifier,
+            )->setSql('DESCRIBE ' . $this->name . ';');
 
-        $fields = $data->read(
-            queryFactory: $factory,
-        );
+            $fields = $data->read(
+                queryFactory: $factory,
+            );
+
+            $doesCreatedAtExists = false;
+            $doesUpdatedAtExists = false;
+
+            foreach ($fields as $field) {
+                if ($field['Field'] === 'createdAt') {
+                    $doesCreatedAtExists = true;
+                }
+                if ($field['Field'] === 'updatedAt') {
+                    $doesUpdatedAtExists = true;
+                }
+            }
+
+            if (!$doesCreatedAtExists || !$doesUpdatedAtExists){
+                if (!$doesCreatedAtExists) {
+                    $factory = SqlQueryFactory::create(
+                        tableClass: TableDefinitionTable::class,
+                        overrideDatabaseIdentifier: $databaseIdentifier,
+                    )->setSql('ALTER TABLE ' . $this->name . ' ADD COLUMN `createdAt` timestamp NOT NULL;');
+
+                    $data->read(
+                        queryFactory: $factory,
+                    );
+                }
+
+                if (!$doesUpdatedAtExists) {
+                    $factory = SqlQueryFactory::create(
+                        tableClass: TableDefinitionTable::class,
+                        overrideDatabaseIdentifier: $databaseIdentifier,
+                    )->setSql('ALTER TABLE ' . $this->name . ' ADD COLUMN `updatedAt` timestamp NOT NULL;');
+
+                    $data->read(
+                        queryFactory: $factory,
+                    );
+                }
+            }
+
+        } while ($doesCreatedAtExists === false && $doesUpdatedAtExists === false);
 
         foreach ($fields as $field){
             $newField = new FieldObject(

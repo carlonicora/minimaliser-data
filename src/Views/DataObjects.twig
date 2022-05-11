@@ -17,18 +17,18 @@ class {{ data.attributes.objectName }} extends Abstract{{ data.attributes.projec
 {
     /** @var {{ data.attributes.project }}Dictionary  */
     protected {{ data.attributes.project }}Dictionary $type = {{ data.attributes.project }}Dictionary::{{ data.attributes.objectName }};
-{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}
+{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.id != 'updatedAt' and field.id != 'createdAt'%}
 
     /** @var {{ field.attributes.phpType }}{% if field.attributes.isNullable == true%}|null{% endif %}  */
     #[DbField(field: {{ data.attributes.objectNamePlural }}Table::{{ field.id }}{% if field.meta.DbFieldType %}, fieldType: {{field.meta.DbFieldType}}{% endif %})]
     protected {% if field.attributes.isNullable == true%}?{% endif %}{{ field.attributes.phpType }} ${% if field.meta.isId == true%}id{% else %}{{ field.id }}{% endif %}{% if field.attributes.isNullable == true%}=null{% endif %};
-{% endfor %}
-{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{%if field.meta.isId == false%}
+{% endif %}{% endfor %}
+{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{%if field.meta.isId == false%}{% if field.id != 'updatedAt' and field.id != 'createdAt'%}
 
     /** @return {{ field.attributes.phpType }}{% if field.attributes.isNullable == true%}|null{% endif %} */
     public function get{{ field.meta.capitalisedName }}(): {% if field.attributes.isNullable == true%}?{% endif %}{{ field.attributes.phpType }}{return $this->{{field.id}};}
 
     /*** @param {{ field.attributes.phpType }}{% if field.attributes.isNullable == true%}|null{% endif %} ${{field.id}} */
     public function set{{ field.meta.capitalisedName }}({% if field.attributes.isNullable == true%}?{% endif %}{{ field.attributes.phpType }} ${{field.id}}): void{$this->{{field.id}} = ${{field.id}};}
-{% endif %}{% endfor %}
+{% endif %}{% endif %}{% endfor %}
 }

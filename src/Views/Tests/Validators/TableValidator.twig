@@ -19,11 +19,12 @@ class {{ data.attributes.objectName }}Validator extends AbstractValidator
         self::assertEquals(expected: {{ meta.projectName }}Dictionary::{{ data.attributes.objectName }}->value, actual: ${{ data.attributes.objectName | lower }}->type);
         self::assertNotNull(actual: ${{ data.attributes.objectName | lower }}->id);
 
+        self::validateResourceElement(ResourceElements::Meta, ${{ data.attributes.objectName | lower }}, ['createdAt','updatedAt']);
         self::validateResourceElement(ResourceElements::Link, ${{ data.attributes.objectName | lower }}, ['self']);
         self::validateResourceElement(ResourceElements::Attribute, ${{ data.attributes.objectName | lower }}, [
-{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{%if field.meta.isId == false%}
+{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{%if field.meta.isId == false%}{% if field.id != 'updatedAt' and field.id != 'createdAt'%}
             '{{ field.id }}',
-{% endif %}{% endfor %}
+{% endif %}{% endif %}{% endfor %}
         ]);
     }
 }
