@@ -1,15 +1,15 @@
 <?php
 namespace {{ meta.namespace }}Enums;
 
-{% for table in data %}{% if table.attributes.isComplete == true %}
+{% for table in data %}
 use {{ meta.namespace }}Data\{{ table.attributes.objectNamePlural }}\Databases\{{ table.attributes.objectNamePlural }}Table;
-{% endif %}{% endfor %}
+{% endfor %}
 
 enum {{ meta.projectName }}Dictionary: string
 {
-{% for table in data %}{% if table.attributes.isComplete == true %}
-    case {{ table.attributes.objectName }}='{{ table.id }}';
-{% endif %}{% endfor %}
+{% for table in data %}
+    case {{ table.attributes.objectName }}='{{ table.attributes.objectName | lower}}';
+{% endfor %}
 
     /**
      * @return string
@@ -18,9 +18,9 @@ enum {{ meta.projectName }}Dictionary: string
     ): string
     {
         return match ($this) {
-{% for table in data %}{% if table.attributes.isComplete == true %}
+{% for table in data %}
             self::{{ table.attributes.objectName }} => '{{ table.attributes.objectName | lower}}',
-{% endif %}{% endfor %}
+{% endfor %}
         };
     }
 
@@ -31,9 +31,9 @@ enum {{ meta.projectName }}Dictionary: string
     ): string
     {
         return match ($this) {
-{% for table in data %}{% if table.attributes.isComplete == true %}
-            self::{{ table.attributes.objectName }} => '{{ table.attributes.objectNamePlural|lower}}',
-{% endif %}{% endfor %}
+{% for table in data %}
+            self::{{ table.attributes.objectName }} => '{{ table.attributes.primaryKey }}',
+{% endfor %}
         };
     }
 
@@ -44,9 +44,9 @@ enum {{ meta.projectName }}Dictionary: string
     ): string
     {
         return match ($this) {
-{% for table in data %}{% if table.attributes.isComplete == true %}
+{% for table in data %}
             self::{{ table.attributes.objectName }} => {{ table.attributes.objectNamePlural}}Table::class,
-{% endif %}{% endfor %}
+{% endfor %}
         };
     }
 

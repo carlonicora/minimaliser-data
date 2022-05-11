@@ -45,7 +45,7 @@ class TableObject implements MinimaliserObjectInterface
         private readonly string $name,
     )
     {
-        $this->objectName = ucfirst(strtolower($this->name));
+        $this->objectName = ucfirst($this->name);
         if (str_ends_with($this->objectName, 's')){
             $this->objectName = substr($this->objectName, 0, -1);
         }

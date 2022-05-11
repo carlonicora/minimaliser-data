@@ -203,12 +203,14 @@ class Minimaliser extends AbstractModel
                 table: $table,
             );
 
-            TestsFactory::generateFunctionalTestFiles(
-                namespace: $this->minimaliser->getNamespace(),
-                projectName: $this->projectName,
-                databaseName: $this->databaseIdentifier,
-                table: $table,
-            );
+            if ($table->isComplete()) {
+                TestsFactory::generateFunctionalTestFiles(
+                    namespace: $this->minimaliser->getNamespace(),
+                    projectName: $this->projectName,
+                    databaseName: $this->databaseIdentifier,
+                    table: $table,
+                );
+            }
         }
     }
 

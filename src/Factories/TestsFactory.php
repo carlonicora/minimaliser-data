@@ -86,20 +86,24 @@ class TestsFactory
 
 
         foreach ($tables as $table){
-            $singleDocument = clone($document);
-            $singleDocument->addResource($table->generateResourceObject());
+            if ($table->isComplete()) {
+                $singleDocument = clone($document);
+                $singleDocument->addResource($table->generateResourceObject());
 
-            $file = self::$twig->transform(
-                document: $singleDocument,
-                viewFile: 'Tests/Validators/TableValidator',
-            );
+                $file = self::$twig->transform(
+                    document: $singleDocument,
+                    viewFile: 'Tests/Validators/TableValidator',
+                );
 
-            file_put_contents(self::$testsDirectory . 'Validators' . DIRECTORY_SEPARATOR . $table->getObjectName() . 'Validator.php', $file);
+                file_put_contents(self::$testsDirectory . 'Validators' . DIRECTORY_SEPARATOR . $table->getObjectName() . 'Validator.php', $file);
+            }
         }
 
         $document->forceResourceList();
         foreach ($tables as $table){
-            $document->addResource($table->generateResourceObject(limitToAttributes: true));
+            if ($table->isComplete()) {
+                $document->addResource($table->generateResourceObject(limitToAttributes: true));
+            }
         }
 
         $file = self::$twig->transform(
