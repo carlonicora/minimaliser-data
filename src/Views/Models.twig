@@ -10,6 +10,7 @@ use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\B
 use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\IO\{{ data.attributes.objectName }}IO;
 use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\Validators\{{ data.attributes.objectName }}CreateValidator;
 use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\DataObjects\{{ data.attributes.objectName }};
+use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\Caches\{{ data.attributes.objectNamePlural }}CacheFactory;
 use Exception;
 
 class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.project }}Model
@@ -49,7 +50,7 @@ class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.
             $this->builder->buildResource(
                 builderClass: {{ data.attributes.objectName }}Builder::class,
                 data: ${{ data.attributes.objectName | lower }},
-                cacheBuilder: null,
+                cacheBuilder: {{ data.attributes.objectNamePlural }}CacheFactory::{{ data.attributes.objectName | lower }}($id),
             )
         );
     }
@@ -70,7 +71,6 @@ class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.
             $this->builder->buildResources(
                 builderClass: {{ data.attributes.objectName }}Builder::class,
                 data: ${{ data.attributes.objectNamePlural }},
-                cacheBuilder: null,
             )
         );
     }
@@ -98,7 +98,6 @@ class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.
             $this->builder->buildResource(
                 builderClass: {{ data.attributes.objectName }}Builder::class,
                 data: ${{ data.attributes.objectName | lower }},
-                cacheBuilder: null,
             )
         );
 
@@ -115,7 +114,7 @@ class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.
         {{ data.attributes.objectName }}CreateValidator $payload,
     ): HttpCode
     {
-        /** @var ResourceableDataInterface $companie */
+        /** @var ResourceableDataInterface ${{ data.attributes.objectName | lower }} */
         ${{ data.attributes.objectName | lower }} = $payload->getDataObject();
 
         /** @var {{ data.attributes.objectName }} ${{ data.attributes.objectName | lower }} */

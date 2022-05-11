@@ -3,7 +3,11 @@ namespace {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlura
 
 use CarloNicora\Minimalism\Interfaces\Sql\Attributes\DbField;
 use CarloNicora\Minimalism\Interfaces\Sql\Attributes\DbTable;
+{% set hasDbFieldType = false %}
+{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.meta.DbFieldType %}{% set hasDbFieldType = true%}{% endif %}{% endfor %}
+{% if hasDbFieldType == true %}
 use CarloNicora\Minimalism\Interfaces\Sql\Enums\DbFieldType;
+{% endif %}
 use {{ data.attributes.namespace }}Data\Abstracts\Abstract{{ data.attributes.project }}DataObject;
 use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\Databases\{{ data.attributes.objectNamePlural }}Table;
 use {{ data.attributes.namespace }}Enums\{{ data.attributes.project }}Dictionary;

@@ -13,6 +13,7 @@ Enum Generator
     case CreatorValidators;
     case UpdaterValidators;
     case Models;
+    case Caches;
 
     /**
      * @param TableObject $table
@@ -31,6 +32,7 @@ Enum Generator
             self::CreatorValidators => $table->getObjectName() . 'CreateValidator',
             self::UpdaterValidators => $table->getObjectName() . 'EditValidator',
             self::Models => $table->getObjectNamePlural(),
+            self::Caches => $table->getObjectNamePlural() . 'CacheFactory',
         };
 
         return $response . '.php';
@@ -45,7 +47,7 @@ Enum Generator
     ): string
     {
         $response = match ($this){
-            self::Builders, self::Databases, self::DataObjects, self::IO, self::Factories => 'Data' . DIRECTORY_SEPARATOR . $table->getObjectNamePlural() . DIRECTORY_SEPARATOR . $this->name,
+            self::Builders, self::Databases, self::DataObjects, self::IO, self::Factories, self::Caches => 'Data' . DIRECTORY_SEPARATOR . $table->getObjectNamePlural() . DIRECTORY_SEPARATOR . $this->name,
             self::Models => $this->name,
             self::CreatorValidators, self::UpdaterValidators => 'Data' . DIRECTORY_SEPARATOR . $table->getObjectNamePlural() . DIRECTORY_SEPARATOR . 'Validators',
         };

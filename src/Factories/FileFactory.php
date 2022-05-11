@@ -57,6 +57,7 @@ class FileFactory
             self::createObjectFile(type: Generator::UpdaterValidators, table: $table);
             self::createObjectFile(type: Generator::CreatorValidators, table: $table);
             self::createObjectFile(type: Generator::Models, table: $table);
+            self::createObjectFile(type: Generator::Caches, table: $table);
         }
     }
 

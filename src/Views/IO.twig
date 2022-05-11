@@ -6,6 +6,7 @@ use CarloNicora\Minimalism\Interfaces\Sql\Abstracts\AbstractSqlIO;
 use CarloNicora\Minimalism\Interfaces\Sql\Enums\SqlComparison;
 use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\Databases\{{ data.attributes.objectNamePlural }}Table;
 use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\DataObjects\{{ data.attributes.objectName }};
+use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\Caches\{{ data.attributes.objectNamePlural }}CacheFactory;
 use CarloNicora\Minimalism\Services\MySQL\Factories\SqlQueryFactory;
 use Exception;
 
@@ -25,6 +26,7 @@ class {{ data.attributes.objectName }}IO extends AbstractSqlIO
 
         return $this->data->read(
             queryFactory: $factory,
+            cacheBuilder: {{ data.attributes.objectNamePlural }}CacheFactory::{{ data.attributes.objectName | lower }}($id),
             responseType: {{ data.attributes.objectName }}::class,
         );
     }
@@ -84,7 +86,6 @@ class {{ data.attributes.objectName }}IO extends AbstractSqlIO
     {
         return $this->data->create(
             queryFactory: ${{ data.attributes.objectName | lower}},
-            cacheBuilder: null,
             responseType: {{ data.attributes.objectName }}::class,
         );
     }
@@ -93,13 +94,13 @@ class {{ data.attributes.objectName }}IO extends AbstractSqlIO
     * @param {{ data.attributes.objectName }} ${{ data.attributes.objectName | lower }}
     * @return void
     */
-    public function updateCompanie(
+    public function update{{ data.attributes.objectName }}(
         {{ data.attributes.objectName }} ${{ data.attributes.objectName | lower }},
     ): void
     {
         $this->data->update(
             queryFactory: ${{ data.attributes.objectName | lower }},
-            cacheBuilder: null,
+            cacheBuilder: {{ data.attributes.objectNamePlural }}CacheFactory::{{ data.attributes.objectName | lower }}(${{ data.attributes.objectName | lower }}->getId()),
         );
     }
 
@@ -118,7 +119,7 @@ class {{ data.attributes.objectName }}IO extends AbstractSqlIO
 
         $this->data->delete(
             queryFactory: $factory,
-            cacheBuilder: null,
+            cacheBuilder: {{ data.attributes.objectNamePlural }}CacheFactory::{{ data.attributes.objectName | lower }}($id),
         );
     }
 }
