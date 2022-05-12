@@ -74,6 +74,8 @@ class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.
                 data: ${{ data.attributes.objectNamePlural | lower }},
             )
         );
+
+        $this->addPagination($page);
     }
 
     /**

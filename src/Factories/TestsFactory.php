@@ -236,6 +236,8 @@ class TestsFactory
                     $childTable->getTable()->getObjectNamePlural() . DIRECTORY_SEPARATOR .
                     'Delete' . $childTable->getTable()->getObjectNamePlural() .  '.php', $file, LOCK_EX);
             }
+
+            $childDocument->resources[0]->meta->remove(name: 'childTable');
         }
     }
 }

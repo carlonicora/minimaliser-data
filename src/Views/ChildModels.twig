@@ -59,6 +59,8 @@ class {{ childTable.attributes.objectNamePlural }} extends Abstract{{ data.attri
             )
         );
 
+        $this->addPagination($page);
+
         return HttpCode::Ok;
     }
 {% if childTable.attributes.isComplete == false %}

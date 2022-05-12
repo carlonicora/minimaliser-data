@@ -1,6 +1,7 @@
 <?php
 namespace {{ meta.namespace }}Models\Abstracts;
 
+use CarloNicora\JsonApi\Objects\Link;
 use CarloNicora\Minimalism\Abstracts\AbstractModel;
 use CarloNicora\Minimalism\Enums\HttpCode;
 use CarloNicora\Minimalism\Interfaces\Encrypter\Interfaces\EncrypterInterface;
@@ -9,6 +10,8 @@ use CarloNicora\Minimalism\Factories\MinimalismFactories;
 use CarloNicora\Minimalism\Interfaces\Security\Interfaces\SecurityInterface;
 use CarloNicora\Minimalism\Services\ResourceBuilder\ResourceBuilder;
 use {{ meta.namespace }}Api;
+use CarloNicora\Minimalism\Services\Path;
+use Exception;
 
 abstract class Abstract{{ meta.projectName }}Model extends AbstractModel
 {
@@ -24,6 +27,9 @@ abstract class Abstract{{ meta.projectName }}Model extends AbstractModel
     /** @var SecurityInterface  */
     protected SecurityInterface $authorisation;
 
+    /** @var Path  */
+    protected Path $path;
+
     /**
      * @param MinimalismFactories $minimalismFactories
      * @param string|null $function
@@ -36,6 +42,7 @@ abstract class Abstract{{ meta.projectName }}Model extends AbstractModel
     {
         parent::__construct($minimalismFactories,$function);
 
+        $this->path = $minimalismFactories->getServiceFactory()->create(Path::class);
         $this->authorisation = $minimalismFactories->getServiceFactory()->create(SecurityInterface::class);
         $this->api = $minimalismFactories->getServiceFactory()->create(Api::class);
         $this->builder = $minimalismFactories->getServiceFactory()->create(ResourceBuilder::class);
@@ -67,5 +74,77 @@ abstract class Abstract{{ meta.projectName }}Model extends AbstractModel
         }
 
         return $page;
+    }
+
+    /**
+    * @param array|null $page
+    * @return void
+    * @throws Exception
+    */
+    protected function addPagination(
+        ?array $page=null,
+    ): void
+    {
+        $size = 25;
+        $currentId = $this->document->resources[count($this->document->resources) - 1]->id;
+        $url = $this->path->getUrl() . substr($this->path->getUri(), 1);
+        $url .= (str_contains(haystack: $url, needle: '?')) ? '&' : '?';
+
+        if ($page !== null && array_key_exists('brfore', $page)){
+            $this->document->links->add(
+                new Link(
+                    name: 'previous',
+                    href: $url .
+                        $this->createPaginationString(
+                            size: $size,
+                            before: $currentId,
+                            after: $page['before']
+                        ),
+                )
+            );
+        }
+
+        $this->document->links->add(
+            new Link(
+                name: 'first',
+                href: substr($url, 0, -1),
+            )
+        );
+
+        $this->document->links->add(
+            new Link(
+                name: 'next',
+                href: $url .
+                    $this->createPaginationString(
+                    size: $size,
+                    after: $currentId,
+                    ),
+            )
+        );
+    }
+
+    /**
+    * @param int $size
+    * @param string|null $before
+    * @param string|null $after
+    * @return string
+    */
+    private function createPaginationString(
+        int $size,
+        ?string $before=null,
+        ?string $after=null,
+    ): string
+    {
+        $response = 'page[size]=' . $size;
+
+        if ($before !== null){
+            $response .= '&page[before]=' . $before;
+        }
+
+        if ($after !== null){
+            $response .= '&page[after]=' . $after;
+        }
+
+        return $response;
     }
 }
