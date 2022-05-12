@@ -21,11 +21,11 @@ class {{ data.attributes.objectName }}EditValidator extends AbstractDataValidato
     {
         $this->documentValidator = new DocumentValidator();
 
-        $resourceValidator = new ResourceValidator(type: '{{ data.attributes.objectNamePlural }}', isIdRequired: true);
+        $resourceValidator = new ResourceValidator(type: '{{ data.attributes.objectName | lower }}', isIdRequired: true);
+{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.meta.isId == false%}{% if field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt'%}
 
-{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.meta.isId == false%}
         $resourceValidator->addAttributeValidator(new AttributeValidator(name: '{{ field.attributes.name }}'));
-{% endif %}{% endfor %}
+{% endif %}{% endif %}{% endfor %}
 
         $this->documentValidator->addResourceValidator(
             validator: $resourceValidator
@@ -39,7 +39,18 @@ class {{ data.attributes.objectName }}EditValidator extends AbstractDataValidato
     public function validateData(
     ): bool
     {
-        $this->dataObject = $this->dataReader->readById($this->encrypter->decryptId($this->getDocument()->resources[0]->id));
+        $this->getDocument()->getSingleResource()->id = $this->encrypter->decryptId($this->getDocument()->getSingleResource()->id);
+{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.meta.isId == false%}{% if field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt'%}{% if field.meta.isForeignKey %}
+
+        $this->getDocument()->getSingleResource()->attributes->update(
+            name: '{{ field.attributes.name }}',
+            value: $this->encrypter->decryptId(
+                $this->getDocument()->getSingleResource()->attributes->get(name: '{{ field.attributes.name }}'),
+            ),
+        );
+{% endif %}{% endif %}{% endif %}{% endfor %}
+
+        $this->dataObject = $this->dataReader->readById($this->getDocument()->getSingleResource()->id);
 
         return true;
     }

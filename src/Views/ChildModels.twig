@@ -26,6 +26,11 @@ use {{ data.attributes.namespace }}Models\Abstracts\Abstract{{ data.attributes.p
 {% if parentTable != false %}
 use {{ data.attributes.namespace }}Data\{{ parentTable.attributes.objectNamePlural }}\Builders\{{ parentTable.attributes.objectName }}Builder;
 use {{ data.attributes.namespace }}Data\{{ parentTable.attributes.objectNamePlural }}\IO\{{ parentTable.attributes.objectName }}IO;
+{% if childTable.attributes.isComplete == false %}
+use {{ data.attributes.namespace }}Data\{{ childTable.attributes.objectNamePlural }}\IO\{{ childTable.attributes.objectName }}IO;
+use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\IO\{{ data.attributes.objectName }}IO;
+{% endif %}
+use {{ data.attributes.namespace }}Data\{{ childTable.attributes.objectNamePlural }}\DataObjects\{{ childTable.attributes.objectName }};
 {% endif %}
 use Exception;
 
@@ -56,4 +61,69 @@ class {{ childTable.attributes.objectNamePlural }} extends Abstract{{ data.attri
 
         return HttpCode::Ok;
     }
+{% if childTable.attributes.isComplete == false %}
+{% set tableLeft = false %}
+{% set tableRight = false %}
+{% for tableIdentifier in childTable.relationships['parents'].data %}{% set table = lookupIncluded('table', tableIdentifier.id, included) %}
+{% if tableLeft == false %}
+{% set tableLeft = table %}
+{% else %}
+{% set tableRight = table %}
+{% endif %}
+{% endfor %}
+
+    /**
+    * @param PositionedEncryptedParameter ${{ tableLeft.attributes.primaryKey }}
+    * @param PositionedEncryptedParameter ${{ tableRight.attributes.primaryKey }}
+    * @return HttpCode
+    * @throws Exception
+    */
+    public function post(
+        PositionedEncryptedParameter ${{ tableLeft.attributes.primaryKey }},
+        PositionedEncryptedParameter ${{ tableRight.attributes.primaryKey }},
+    ): HttpCode
+    {
+        ${{ tableLeft.attributes.objectName | lower }} = $this->objectFactory->create({{ tableLeft.attributes.objectName }}IO::class)->readById(${{ tableLeft.attributes.primaryKey }}->getValue());
+        ${{ tableRight.attributes.objectName | lower }} = $this->objectFactory->create({{ tableRight.attributes.objectName }}IO::class)->readById(${{ tableRight.attributes.primaryKey }}->getValue());
+
+        ${{ childTable.attributes.objectName | lower }} = new {{ childTable.attributes.objectName }}();
+        ${{ childTable.attributes.objectName | lower }}->set{{ tableLeft.attributes.primaryKeyCapitalised }}(${{ tableLeft.attributes.objectName | lower }}->getId());
+        ${{ childTable.attributes.objectName | lower }}->set{{ tableRight.attributes.primaryKeyCapitalised }}(${{ tableRight.attributes.objectName | lower }}->getId());
+
+        /** @noinspection UnusedFunctionResultInspection */
+        $this->objectFactory->create({{ childTable.attributes.objectName }}IO::class)->insert(${{ childTable.attributes.objectName | lower }});
+
+        return HttpCode::Created;
+    }
+
+    /**
+    * @param PositionedEncryptedParameter ${{ data.attributes.primaryKey }}
+    * @param PositionedEncryptedParameter ${{ parentTable.attributes.primaryKey }}
+    * @return HttpCode
+    * @throws Exception
+    */
+    public function delete(
+        PositionedEncryptedParameter ${{ data.attributes.primaryKey }},
+        PositionedEncryptedParameter ${{ parentTable.attributes.primaryKey }},
+    ): HttpCode
+    {
+{% set first = false %}
+{% set second = false %}
+{% if tableLeft.id == data.id%}
+{% set first = data %}
+{% set second = parentTable %}
+{% else %}
+{% set first = parentTable %}
+{% set second = data %}
+{% endif %}
+        ${{ childTable.attributes.objectName | lower }} = $this->objectFactory->create({{ childTable.attributes.objectName }}IO::class)->readBy{{ first.attributes.primaryKeyCapitalised }}{{ second.attributes.primaryKeyCapitalised }}(
+            {{ first.attributes.primaryKey }}: ${{ first.attributes.primaryKey }}->getValue(),
+            {{ second.attributes.primaryKey }}: ${{ second.attributes.primaryKey }}->getValue(),
+        );
+
+        $this->objectFactory->create({{ childTable.attributes.objectName }}IO::class)->deleteById(${{ childTable.attributes.objectName | lower }}->getId());
+
+        return HttpCode::NoContent;
+    }
+{% endif %}
 }

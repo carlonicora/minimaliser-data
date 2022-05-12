@@ -9,6 +9,7 @@ use {{ data.attributes.namespace }}Models\Abstracts\Abstract{{ data.attributes.p
 use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\Builders\{{ data.attributes.objectName }}Builder;
 use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\IO\{{ data.attributes.objectName }}IO;
 use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\Validators\{{ data.attributes.objectName }}CreateValidator;
+use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\Validators\{{ data.attributes.objectName }}EditValidator;
 use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\DataObjects\{{ data.attributes.objectName }};
 use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\Caches\{{ data.attributes.objectNamePlural }}CacheFactory;
 use Exception;
@@ -86,7 +87,7 @@ class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.
     {
         /** @var {{ data.attributes.objectName }} ${{ data.attributes.objectName | lower }} */
         ${{ data.attributes.objectName | lower }} = $this->builder->ingestResource(
-            dataClass: {{ data.attributes.objectName }}::class,
+            dataClass: {{ data.attributes.objectName }}Builder::class,
             resource: $payload->getSingleResource(),
         );
 
@@ -106,12 +107,12 @@ class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.
 
 
     /**
-    * @param {{ data.attributes.objectName }}CreateValidator $payload
+    * @param {{ data.attributes.objectName }}EditValidator $payload
     * @return HttpCode
     * @throws Exception
     */
     public function patch(
-        {{ data.attributes.objectName }}CreateValidator $payload,
+        {{ data.attributes.objectName }}EditValidator $payload,
     ): HttpCode
     {
         /** @var ResourceableDataInterface ${{ data.attributes.objectName | lower }} */
@@ -119,7 +120,7 @@ class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.
 
         /** @var {{ data.attributes.objectName }} ${{ data.attributes.objectName | lower }} */
         ${{ data.attributes.objectName | lower }} = $this->builder->ingestResource(
-            dataClass: {{ data.attributes.objectName }}::class,
+            dataClass: {{ data.attributes.objectName }}Builder::class,
             resource: $payload->getSingleResource(),
             dataObject: ${{ data.attributes.objectName | lower }},
         );
@@ -140,7 +141,8 @@ class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.
         PositionedEncryptedParameter $id,
     ): HttpCode
     {
-        $this->objectFactory->create({{ data.attributes.objectName }}IO::class)->deleteById($id->getValue());
+        ${{ data.attributes.objectName | lower }} = $this->objectFactory->create({{ data.attributes.objectName }}IO::class)->readById($id->getValue());
+        $this->objectFactory->create({{ data.attributes.objectName }}IO::class)->deleteById(${{ data.attributes.objectName | lower }}->getId());
 
         return HttpCode::NoContent;
     }

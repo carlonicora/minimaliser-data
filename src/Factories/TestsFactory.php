@@ -178,6 +178,27 @@ class TestsFactory
 
         file_put_contents(self::$testsDirectory . 'Functional' . DIRECTORY_SEPARATOR . $table->getObjectNamePlural() . DIRECTORY_SEPARATOR . 'Get' . $table->getObjectNamePlural() .  '.php', $file, LOCK_EX);
 
+        $file = self::$twig->transform(
+            document: $document,
+            viewFile: 'Tests/Functional/Post',
+        );
+
+        file_put_contents(self::$testsDirectory . 'Functional' . DIRECTORY_SEPARATOR . $table->getObjectNamePlural() . DIRECTORY_SEPARATOR . 'Post' . $table->getObjectNamePlural() .  '.php', $file, LOCK_EX);
+
+        $file = self::$twig->transform(
+            document: $document,
+            viewFile: 'Tests/Functional/Patch',
+        );
+
+        file_put_contents(self::$testsDirectory . 'Functional' . DIRECTORY_SEPARATOR . $table->getObjectNamePlural() . DIRECTORY_SEPARATOR . 'Patch' . $table->getObjectNamePlural() .  '.php', $file, LOCK_EX);
+
+        $file = self::$twig->transform(
+            document: $document,
+            viewFile: 'Tests/Functional/Delete',
+        );
+
+        file_put_contents(self::$testsDirectory . 'Functional' . DIRECTORY_SEPARATOR . $table->getObjectNamePlural() . DIRECTORY_SEPARATOR . 'Delete' . $table->getObjectNamePlural() .  '.php', $file, LOCK_EX);
+
         foreach ($table->getChildren() ?? [] as $childTable) {
             mkdir(self::$testsDirectory . 'Functional' . DIRECTORY_SEPARATOR . $table->getObjectNamePlural() . DIRECTORY_SEPARATOR . $childTable->getTable()->getObjectNamePlural());
 
@@ -193,6 +214,28 @@ class TestsFactory
                 $table->getObjectNamePlural() . DIRECTORY_SEPARATOR .
                 $childTable->getTable()->getObjectNamePlural() . DIRECTORY_SEPARATOR .
                 'Get' . $childTable->getTable()->getObjectNamePlural() .  '.php', $file, LOCK_EX);
+
+            if (!$childTable->getTable()->isComplete()) {
+                $file = self::$twig->transform(
+                    document: $document,
+                    viewFile: 'Tests/Functional/PostChild',
+                );
+
+                file_put_contents(self::$testsDirectory . 'Functional' . DIRECTORY_SEPARATOR .
+                    $table->getObjectNamePlural() . DIRECTORY_SEPARATOR .
+                    $childTable->getTable()->getObjectNamePlural() . DIRECTORY_SEPARATOR .
+                    'Post' . $childTable->getTable()->getObjectNamePlural() .  '.php', $file, LOCK_EX);
+
+                $file = self::$twig->transform(
+                    document: $document,
+                    viewFile: 'Tests/Functional/DeleteChild',
+                );
+
+                file_put_contents(self::$testsDirectory . 'Functional' . DIRECTORY_SEPARATOR .
+                    $table->getObjectNamePlural() . DIRECTORY_SEPARATOR .
+                    $childTable->getTable()->getObjectNamePlural() . DIRECTORY_SEPARATOR .
+                    'Delete' . $childTable->getTable()->getObjectNamePlural() .  '.php', $file, LOCK_EX);
+            }
         }
     }
 }

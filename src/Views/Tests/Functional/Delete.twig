@@ -1,0 +1,59 @@
+<?php
+namespace {{ meta.namespace }}Tests\Functional\{{ data.attributes.objectNamePlural}};
+
+use CarloNicora\Minimalism\Enums\HttpCode;
+use {{ meta.namespace }}Tests\Abstracts\AbstractFunctionalTest;
+use {{ meta.namespace }}Tests\Data\{{ meta.database }}\{{ data.attributes.objectNamePlural }}Data;
+use Exception;
+use {{ meta.namespace }}Tests\Validators\{{ data.attributes.objectName }}Validator;
+
+class Delete{{ data.attributes.objectNamePlural }} extends AbstractFunctionalTest
+{
+    /**
+     * @test
+     * @return void
+     * @throws Exception
+     * @covers \{{ meta.namespace }}Models\{{ data.attributes.objectNamePlural }}::delete()
+     */
+    public function SHOULD_Return412_WHEN_UserDeletes{{ data.attributes.objectNamePlural }}Without{{ data.attributes.objectName }}Id(
+    ): void
+    {
+        /** @noinspection UnusedFunctionResultInspection */
+        $this->runApiCall(
+            expectedResult: HttpCode::PreconditionFailed,
+        );
+    }
+
+
+    /**
+    * @test
+    * @return void
+    * @throws Exception
+    * @covers \{{ meta.namespace }}Models\{{ data.attributes.objectNamePlural }}::delete()
+    */
+    public function SHOULD_Return404_WHEN_UserDeletesNonExisting{{ data.attributes.objectNamePlural }}(
+    ): void
+    {
+        /** @noinspection UnusedFunctionResultInspection */
+        $this->runApiCall(
+            expectedResult: HttpCode::NotFound,
+            endpointParams: [1000000000],
+        );
+    }
+
+    /**
+    * @test
+    * @return void
+    * @throws Exception
+    * @covers \{{ meta.namespace }}Models\{{ data.attributes.objectNamePlural }}::delete()
+    */
+    public function SHOULD_Return204_WHEN_UserRequests{{ data.attributes.objectName }}(
+    ): void
+    {
+        /** @noinspection UnusedFunctionResultInspection */
+        $response = $this->runApiCall(
+            expectedResult: HttpCode::NoContent,
+            endpointParams: [{{ data.attributes.objectNamePlural }}Data::Value1->value],
+        );
+    }
+}

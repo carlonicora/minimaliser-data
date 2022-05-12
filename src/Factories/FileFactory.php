@@ -49,11 +49,11 @@ class FileFactory
         
         self::createObjectFile(type: Generator::Databases,table: $table);
         self::createObjectFile(type: Generator::DataObjects, table: $table);
+        self::createObjectFile(type: Generator::IO, table: $table);
 
         if ($table->isComplete()) {
             self::createObjectFile(type: Generator::Builders,table: $table);
             //self::createObjectFile(type: Generator::Factories, table: $table);
-            self::createObjectFile(type: Generator::IO, table: $table);
             self::createObjectFile(type: Generator::UpdaterValidators, table: $table);
             self::createObjectFile(type: Generator::CreatorValidators, table: $table);
             self::createObjectFile(type: Generator::Models, table: $table);

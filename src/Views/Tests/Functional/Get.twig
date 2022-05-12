@@ -22,6 +22,8 @@ class Get{{ data.attributes.objectNamePlural }} extends AbstractFunctionalTest
             expectedResult: HttpCode::Ok,
         );
 
+        self::assertEquals(expected: 3, actual: $response->getResourceCount());
+
         foreach ($response->getResources() as $resource) {
             {{ data.attributes.objectName }}Validator::validate($resource);
         }

@@ -4,6 +4,7 @@ namespace {{ meta.namespace }}Tests\Abstracts;
 use BackedEnum;
 use CarloNicora\Minimalism\Enums\HttpCode;
 use {{ meta.namespace }}Tests\Data\Oauth\TokensData;
+use CarloNicora\JsonApi\Document;
 use CarloNicora\Minimalism\Interfaces\Encrypter\Interfaces\EncrypterInterface;
 use CarloNicora\Minimalism\Services\MySQL\MySQL;
 use CarloNicora\Minimalism\Services\Redis\Redis;
@@ -118,6 +119,7 @@ abstract class AbstractFunctionalTest extends \CarloNicora\Minimalism\TestSuite\
     * @param HttpCode|null $expectedResult
     * @param string|null $expectedErrorDescription
     * @param array|null $endpointParams
+    * @param Document|null $payload
     * @param string|null $bearer
     * @return ApiResponse|null
     * @throws Exception
@@ -126,6 +128,7 @@ abstract class AbstractFunctionalTest extends \CarloNicora\Minimalism\TestSuite\
         ?HttpCode $expectedResult=null,
         ?string $expectedErrorDescription = null,
         ?array $endpointParams=[],
+        ?Document $payload=null,
         ?string $bearer=null,
     ): ?ApiResponse
     {
@@ -156,13 +159,14 @@ abstract class AbstractFunctionalTest extends \CarloNicora\Minimalism\TestSuite\
             request: new ApiRequest(
                 verb: $verb,
                 endpoint: self::generateEndpoint($endpointParams),
+                payload: $payload?->prepare(),
                 bearer: $bearer,
             ),
         );
 
         self::assertEquals(expected: $expectedResult, actual: $response->getHttpCode(), message: $response->getError());
 
-        if ($expectedResult !== null) {
+        if ($expectedResult !== null && $expectedErrorDescription !== null) {
             self::assertEquals(expected: $expectedErrorDescription, actual: $response->getError());
         }
 

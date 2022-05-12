@@ -72,7 +72,9 @@ class {{ data.attributes.objectName }}Builder extends Abstract{{ data.attributes
 
 {% endif %}{% endif %}{% endfor %}
             $response = new {{ data.attributes.objectName }}();
-            $response->setId($this->encrypter->decryptId($resource->id));
+            if ($resource->id !== null) {
+               $response->setId($resource->id);
+            }
         } else {
             $response = $dataObject;
         }
