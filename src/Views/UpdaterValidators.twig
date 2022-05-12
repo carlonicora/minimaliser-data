@@ -24,7 +24,7 @@ class {{ data.attributes.objectName }}EditValidator extends AbstractDataValidato
         $resourceValidator = new ResourceValidator(type: '{{ data.attributes.objectNamePlural }}', isIdRequired: true);
 
 {% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.meta.isId == false%}
-        $resourceValidator->addAttributeValidator(new AttributeValidator(name: '{{ field.id }}'));
+        $resourceValidator->addAttributeValidator(new AttributeValidator(name: '{{ field.attributes.name }}'));
 {% endif %}{% endfor %}
 
         $this->documentValidator->addResourceValidator(

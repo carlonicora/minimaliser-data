@@ -89,9 +89,10 @@ class FieldObject implements MinimaliserObjectInterface
     {
         $response = new ResourceObject(
             type: 'field',
-            id: $this->name,
+            id: $this->table->getName() . '.' . $this->name,
         );
 
+        $response->attributes->add(name: 'name', value: $this->name);
         $response->attributes->add(name: 'isNullable', value: $this->isNullable);
         $response->attributes->add(name: 'phpType', value: $this->phpType);
         $response->attributes->add(name: 'type', value: $this->type->name);

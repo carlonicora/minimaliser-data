@@ -171,7 +171,7 @@ class TableObject implements MinimaliserObjectInterface
             }
         }
 
-        if (!$limitToAttributes) {
+        if (!$limitToAttributes || !$this->isComplete) {
             $response->relationship('fields')->resourceLinkage->forceResourceList(true);
 
             foreach ($this->fields as $field) {

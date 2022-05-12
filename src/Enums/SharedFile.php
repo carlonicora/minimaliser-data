@@ -7,6 +7,7 @@ enum SharedFile
     case AbstractDataObject;
     case AbstractResourceBuilder;
     case AbstractModel;
+    case AbstractSqlIO;
 
     /**
      * @param string $projectName
@@ -21,6 +22,7 @@ enum SharedFile
             self::AbstractDataObject => 'Abstract' . $projectName . 'DataObject',
             self::AbstractResourceBuilder => 'Abstract' . $projectName . 'ResourceBuilder',
             self::AbstractModel => 'Abstract' . $projectName . 'Model',
+            self::AbstractSqlIO => 'Abstract' . $projectName . 'SqlIO',
         };
 
         return $response . '.php';

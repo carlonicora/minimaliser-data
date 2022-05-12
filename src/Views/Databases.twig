@@ -10,8 +10,15 @@ use CarloNicora\Minimalism\Services\MySQL\Enums\FieldType;
 enum {{ data.attributes.objectNamePlural }}Table
 {
 {% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}
-
-    #[SqlField(fieldType: FieldType::{{ field.attributes.type }}{% if field.meta.option %} ,fieldOption: FieldOption::{{ field.meta.option }}{% endif %})]
-    case {{ field.id }};
+{% set option = false%}
+{% if field.attributes.name == 'createdAt' %}
+{% set option = 'TimeCreate'%}
+{% elseif field.attributes.name == 'updatedAt' %}
+{% set option = 'TimeUpdate'%}
+{% elseif field.meta.option %}
+{% set option = field.meta.option %}
+{% endif %}
+    #[SqlField(fieldType: FieldType::{{ field.attributes.type }}{% if option != false %} ,fieldOption: FieldOption::{{ option }}{% endif %})]
+    case {{ field.attributes.name }};
 {% endfor %}
 }

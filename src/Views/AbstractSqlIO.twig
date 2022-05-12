@@ -1,0 +1,49 @@
+<?php
+namespace {{ meta.namespace }}Data\Abstracts;
+
+use UnitEnum;
+use CarloNicora\Minimalism\Interfaces\Sql\Abstracts\AbstractSqlIO;
+use CarloNicora\Minimalism\Interfaces\Sql\Interfaces\SqlQueryFactoryInterface;
+use CarloNicora\Minimalism\Interfaces\Sql\Enums\SqlComparison;
+
+class Abstract{{ meta.projectName }}SqlIO extends AbstractSqlIO
+{
+    /**
+     * @param SqlQueryFactoryInterface $factory
+     * @param array|null $page
+     * @param UnitEnum $primaryKey
+     * @return void
+     */
+    protected function addPagination(
+        SqlQueryFactoryInterface $factory,
+        ?array $page,
+        UnitEnum $primaryKey,
+    ): void
+    {
+        if ($page === null){
+            $factory->limit(0, 25);
+        } elseif (array_key_exists('before', $page)){
+            $factory->addParameter(
+                field: $primaryKey,
+                value: $page['before'],
+                comparison: SqlComparison::GreaterThan
+            )->addParameter(
+                field: $primaryKey,
+                value: $page['after'],
+                comparison: SqlComparison::LesserOrEqualThan
+            );
+        } else {
+            $factory->addParameter(
+                field: $primaryKey,
+                value: $page['after'],
+                comparison: SqlComparison::GreaterThan
+            );
+
+            if (array_key_exists('size', $page)){
+                $factory->limit(0, $page['size']);
+            } else {
+                $factory->limit(0, 25);
+            }
+        }
+    }
+}

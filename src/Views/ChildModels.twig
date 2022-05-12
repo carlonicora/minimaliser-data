@@ -1,12 +1,59 @@
-meta: {{ data.meta.childTable }}
-{% set table = false %}
+{% set childTable = false %}
+{% set parentTable = false %}
 {% for childTableIdentifier in data.relationships['children'].data %}
-    - {{ childTableIdentifier.id }}
 {% if childTableIdentifier.id == data.meta.childTable %}
-{% set table = lookupIncluded('table', childTableIdentifier.id, included) %}
+{% set childTable = lookupIncluded('table', childTableIdentifier.id, included) %}
+{% if childTable.attributes.isComplete == false %}
+{% for parentTableIdentifier in childTable.relationships['parents'].data %}
+{% if parentTableIdentifier.id != data.id %}
+{% set parentTable = lookupIncluded('table', parentTableIdentifier.id, included) %}
+{% set break = true %}
 {% endif %}
 {% endfor %}
+{% endif %}
+{% set break = true %}
+{% endif %}
+{% endfor %}
+{% if parentTable == false %}
+{% set parentTable = childTable %}
+{% endif %}
+<?php
+namespace {{ data.attributes.namespace }}Models\{{ data.attributes.objectNamePlural }};
 
-Table: {{ data.id }}
-Child Table: {{ data.meta.childTable }}
-Child Table: {{ table.id }}
+use CarloNicora\Minimalism\Enums\HttpCode;
+use CarloNicora\Minimalism\Interfaces\Encrypter\Parameters\PositionedEncryptedParameter;
+use {{ data.attributes.namespace }}Models\Abstracts\Abstract{{ data.attributes.project }}Model;
+{% if parentTable != false %}
+use {{ data.attributes.namespace }}Data\{{ parentTable.attributes.objectNamePlural }}\Builders\{{ parentTable.attributes.objectName }}Builder;
+use {{ data.attributes.namespace }}Data\{{ parentTable.attributes.objectNamePlural }}\IO\{{ parentTable.attributes.objectName }}IO;
+{% endif %}
+use Exception;
+
+class {{ childTable.attributes.objectNamePlural }} extends Abstract{{ data.attributes.project }}Model
+{
+    /**
+     * @param PositionedEncryptedParameter ${{ data.attributes.primaryKey }}
+     * @param array|null $page
+     * @return HttpCode
+     * @throws Exception
+     */
+    public function get(
+        PositionedEncryptedParameter ${{ data.attributes.primaryKey }},
+        ?array $page=null,
+    ): HttpCode
+    {
+        ${{ parentTable.attributes.objectNamePlural | lower }} = $this->objectFactory->create({{ parentTable.attributes.objectName }}IO::class)->readBy{{ data.attributes.primaryKeyCapitalised }}(
+            {{ data.attributes.primaryKey }}: ${{ data.attributes.primaryKey }}->getValue(),
+            page: $page,
+        );
+
+        $this->document->addResourceList(
+            $this->builder->buildResources(
+                builderClass: {{ parentTable.attributes.objectName }}Builder::class,
+                data: ${{ parentTable.attributes.objectNamePlural | lower }},
+            )
+        );
+
+        return HttpCode::Ok;
+    }
+}

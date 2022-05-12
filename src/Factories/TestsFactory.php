@@ -5,7 +5,6 @@ use CarloNicora\JsonApi\Document;
 use CarloNicora\Minimalism\MinimaliserData\Objects\TableObject;
 use CarloNicora\Minimalism\Services\Twig\Twig;
 use Exception;
-use RuntimeException;
 
 class TestsFactory
 {
@@ -50,24 +49,12 @@ class TestsFactory
             }
         }
 
-        if (!mkdir($concurrentDirectory = self::$testsDirectory . 'Abstracts') && !is_dir($concurrentDirectory)) {
-            throw new RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
-        }
-        if (!mkdir($concurrentDirectory = self::$testsDirectory . 'Data') && !is_dir($concurrentDirectory)) {
-            throw new RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
-        }
-        if (!mkdir($concurrentDirectory = self::$testsDirectory . 'Data' . DIRECTORY_SEPARATOR . 'Oauth') && !is_dir($concurrentDirectory)) {
-            throw new RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
-        }
-        if (!mkdir($concurrentDirectory = self::$testsDirectory . 'Data' . DIRECTORY_SEPARATOR . $databaseName) && !is_dir($concurrentDirectory)) {
-            throw new RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
-        }
-        if (!mkdir($concurrentDirectory = self::$testsDirectory . 'Functional') && !is_dir($concurrentDirectory)) {
-            throw new RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
-        }
-        if (!mkdir($concurrentDirectory = self::$testsDirectory . 'Validators') && !is_dir($concurrentDirectory)) {
-            throw new RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
-        }
+        mkdir(self::$testsDirectory . 'Abstracts');
+        mkdir(self::$testsDirectory . 'Data');
+        mkdir(self::$testsDirectory . 'Data' . DIRECTORY_SEPARATOR . 'Oauth');
+        mkdir(self::$testsDirectory . 'Data' . DIRECTORY_SEPARATOR . $databaseName);
+        mkdir(self::$testsDirectory . 'Functional');
+        mkdir(self::$testsDirectory . 'Validators');
 
         $document = new Document();
         $document->meta->add(name: 'namespace', value: $namespace);
@@ -173,9 +160,7 @@ class TestsFactory
         TableObject $table,
     ): void
     {
-        if (!mkdir($concurrentDirectory = self::$testsDirectory . 'Functional' . DIRECTORY_SEPARATOR . $table->getObjectNamePlural()) && !is_dir($concurrentDirectory)) {
-            throw new RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
-        }
+        mkdir(self::$testsDirectory . 'Functional' . DIRECTORY_SEPARATOR . $table->getObjectNamePlural());
 
         $document = new Document();
         $document->meta->add(name: 'namespace', value: $namespace);
@@ -192,5 +177,22 @@ class TestsFactory
         );
 
         file_put_contents(self::$testsDirectory . 'Functional' . DIRECTORY_SEPARATOR . $table->getObjectNamePlural() . DIRECTORY_SEPARATOR . 'Get' . $table->getObjectNamePlural() .  '.php', $file, LOCK_EX);
+
+        foreach ($table->getChildren() ?? [] as $childTable) {
+            mkdir(self::$testsDirectory . 'Functional' . DIRECTORY_SEPARATOR . $table->getObjectNamePlural() . DIRECTORY_SEPARATOR . $childTable->getTable()->getObjectNamePlural());
+
+            $childDocument = clone($document);
+            $childDocument->resources[0]->meta->add(name: 'childTable', value: $childTable->getTable()->getName());
+
+            $file = self::$twig->transform(
+                document: $document,
+                viewFile: 'Tests/Functional/GetChild',
+            );
+
+            file_put_contents(self::$testsDirectory . 'Functional' . DIRECTORY_SEPARATOR .
+                $table->getObjectNamePlural() . DIRECTORY_SEPARATOR .
+                $childTable->getTable()->getObjectNamePlural() . DIRECTORY_SEPARATOR .
+                'Get' . $childTable->getTable()->getObjectNamePlural() .  '.php', $file, LOCK_EX);
+        }
     }
 }

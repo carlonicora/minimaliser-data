@@ -30,8 +30,8 @@ enum {{ data.attributes.objectNamePlural }}Data: int implements TableDataInterfa
         return match($this) {
 {% for i in 1..3 %}
             self::Value{{ i }} => $this->map(
-{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.meta.isId == false%}{% if field.id != 'updatedAt' and field.id != 'createdAt'%}
-                {{ field.id}}:{% if field.meta.isForeignKey == true%}{{ field.meta.tableObjectNamePlural }}Data::Value{{ i }}{% else %}{% if field.attributes.phpType == 'string' %}'{{ field.id }}{{ i }}'{% elseif field.attributes.phpType == 'bool' %}true{% else %}{% if field.meta.DbFieldType == 'DbFieldType::IntDateTime' %}time(){% else %}{{ i }}{% endif %}{% endif %}{% endif %},
+{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.meta.isId == false%}{% if field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt'%}
+                {{ field.attributes.name}}:{% if field.meta.isForeignKey == true%}{{ field.meta.tableObjectNamePlural }}Data::Value{{ i }}{% else %}{% if field.attributes.phpType == 'string' %}'{{ field.attributes.name }}{{ i }}'{% elseif field.attributes.phpType == 'bool' %}true{% else %}{% if field.meta.DbFieldType == 'DbFieldType::IntDateTime' %}time(){% else %}{{ i }}{% endif %}{% endif %}{% endif %},
 {% endif %}{% endif %}{% endfor %}
             ),
 {% endfor %}
@@ -39,20 +39,20 @@ enum {{ data.attributes.objectNamePlural }}Data: int implements TableDataInterfa
     }
 
     /**
-{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.meta.isId == false%}{% if field.id != 'updatedAt' and field.id != 'createdAt'%}
-    * @param {% if field.meta.isForeignKey == true%}{{ field.meta.tableObjectNamePlural }}Data{% else %}{{ field.attributes.phpType }}{% endif %} ${{ field.id }}
+{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.meta.isId == false%}{% if field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt'%}
+    * @param {% if field.meta.isForeignKey == true%}{{ field.meta.tableObjectNamePlural }}Data{% else %}{{ field.attributes.phpType }}{% endif %} ${{ field.attributes.name }}
 {% endif %}{% endif %}{% endfor %}
     * @return {{ data.attributes.objectName}}
     */
     private function map(
-{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.meta.isId == false%}{% if field.id != 'updatedAt' and field.id != 'createdAt'%}
-        {% if field.meta.isForeignKey == true%}{{ field.meta.tableObjectNamePlural }}Data{% else %}{{ field.attributes.phpType }}{% endif %} ${{ field.id }},
+{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.meta.isId == false%}{% if field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt'%}
+        {% if field.meta.isForeignKey == true%}{{ field.meta.tableObjectNamePlural }}Data{% else %}{{ field.attributes.phpType }}{% endif %} ${{ field.attributes.name }},
 {% endif %}{% endif %}{% endfor %}
     ): {{ data.attributes.objectName}}
     {
         $response = new {{ data.attributes.objectName}}();
-{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.id != 'updatedAt' and field.id != 'createdAt'%}
-        $response->set{% if field.meta.isId %}Id($this->value){% else %}{{ field.meta.capitalisedName}}(${{ field.id }}{% if field.meta.isForeignKey == true %}->value{% endif %}){% endif %};
+{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt'%}
+        $response->set{% if field.meta.isId %}Id($this->value){% else %}{{ field.meta.capitalisedName}}(${{ field.attributes.name }}{% if field.meta.isForeignKey == true %}->value{% endif %}){% endif %};
 {% endif %}{% endfor %}
 
         return $response;

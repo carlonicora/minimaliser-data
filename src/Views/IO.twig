@@ -2,15 +2,21 @@
 namespace {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\IO;
 
 use CarloNicora\Minimalism\Exceptions\MinimalismException;
-use CarloNicora\Minimalism\Interfaces\Sql\Abstracts\AbstractSqlIO;
+use CarloNicora\Minimalism\Services\MySQL\Factories\SqlJoinFactory;
+use {{ data.attributes.namespace }}Data\Abstracts\Abstract{{ data.attributes.project }}SqlIO;
 use CarloNicora\Minimalism\Interfaces\Sql\Enums\SqlComparison;
 use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\Databases\{{ data.attributes.objectNamePlural }}Table;
 use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\DataObjects\{{ data.attributes.objectName }};
 use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\Caches\{{ data.attributes.objectNamePlural }}CacheFactory;
 use CarloNicora\Minimalism\Services\MySQL\Factories\SqlQueryFactory;
 use Exception;
+{% set childTable = false %}
+{% set parentTable = false %}
+{% for childTableIdentifier in data.relationships['children'].data %}{% set childTable = lookupIncluded('table', childTableIdentifier.id, included) %}
+use {{ data.attributes.namespace }}Data\{{ childTable.attributes.objectNamePlural }}\Databases\{{ childTable.attributes.objectNamePlural }}Table;
+{% endfor %}
 
-class {{ data.attributes.objectName }}IO extends AbstractSqlIO
+class {{ data.attributes.objectName }}IO extends Abstract{{ data.attributes.project }}SqlIO
 {
     /**
      * @param int $id
@@ -42,31 +48,7 @@ class {{ data.attributes.objectName }}IO extends AbstractSqlIO
     {
         $factory = SqlQueryFactory::create({{ data.attributes.objectNamePlural }}Table::class);
 
-        if ($page === null){
-            $factory->limit(0, 25);
-        } elseif (array_key_exists('before', $page)){
-            $factory->addParameter(
-                field:{{ data.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }},
-                value: $page['before'],
-                comparison: SqlComparison::GreaterThan
-            )->addParameter(
-                field:{{ data.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }},
-                value: $page['after'],
-                comparison: SqlComparison::LesserOrEqualThan
-            );
-        } else {
-            $factory->addParameter(
-                field:{{ data.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }},
-                value: $page['after'],
-                comparison: SqlComparison::GreaterThan
-            );
-
-            if (array_key_exists('size', $page)){
-                $factory->limit(0, $page['size']);
-            } else {
-                $factory->limit(0, 25);
-            }
-        }
+        $this->addPagination($factory, $page, {{ data.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }});
 
         return $this->data->read(
             queryFactory: $factory,
@@ -122,4 +104,94 @@ class {{ data.attributes.objectName }}IO extends AbstractSqlIO
             cacheBuilder: {{ data.attributes.objectNamePlural }}CacheFactory::{{ data.attributes.objectName | lower }}($id),
         );
     }
+{% set childTable = false %}
+{% set parentTable = false %}
+{% for childTableIdentifier in data.relationships['children'].data %}{% set childTable = lookupIncluded('table', childTableIdentifier.id, included) %}
+{% if childTable.attributes.isComplete == false %}
+{% for parentTableIdentifier in childTable.relationships['parents'].data %}
+{% if parentTableIdentifier.id != data.id %}
+{% set parentTable = lookupIncluded('table', parentTableIdentifier.id, included) %}
+{% if parentTable != false %}
+    /**
+    * @param int ${{ parentTable.attributes.primaryKey }}
+    * @param array|null $page
+    * @return {{ data.attributes.objectName }}[]
+    * @throws MinimalismException
+    */
+    public function readBy{{ parentTable.attributes.primaryKeyCapitalised }}(
+        int ${{ parentTable.attributes.primaryKey }},
+        ?array $page,
+    ): array
+    {
+        $factory = SqlQueryFactory::create({{ data.attributes.objectNamePlural }}Table::class)
+{% if parentTable != false%}
+            ->addJoin(new SqlJoinFactory(primaryKey: {{ data.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }}, foreignKey: {{ childTable.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }}))
+{% endif %}
+            ->addParameter(field: {{ childTable.attributes.objectNamePlural }}Table::{{ parentTable.attributes.primaryKey }}, value: ${{ parentTable.attributes.primaryKey }});
+
+        $this->addPagination($factory, $page, {{ data.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }});
+
+        return $this->data->read(
+            queryFactory: $factory,
+            responseType: {{ data.attributes.objectName }}::class,
+            requireObjectsList: true,
+        );
+    }
+{% set break = true %}
+{% endif %}
+{% endif %}
+{% endfor %}
+{% else %}
+    /**
+    * @param int ${{ childTable.attributes.primaryKey }}
+    * @param array|null $page
+    * @return {{ data.attributes.objectName }}[]
+    * @throws MinimalismException
+    */
+    public function readBy{{ childTable.attributes.primaryKeyCapitalised }}(
+        int ${{ childTable.attributes.primaryKey }},
+        ?array $page,
+    ): array
+    {
+        $factory = SqlQueryFactory::create({{ data.attributes.objectNamePlural }}Table::class)
+            ->addJoin(new SqlJoinFactory(primaryKey: {{ data.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }}, foreignKey: {{ childTable.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }}))
+            ->addParameter(field: {{ childTable.attributes.objectNamePlural }}Table::{{ childTable.attributes.primaryKey }}, value: ${{ childTable.attributes.primaryKey }});
+
+        $this->addPagination($factory, $page, {{ data.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }});
+
+        return $this->data->read(
+            queryFactory: $factory,
+            responseType: {{ data.attributes.objectName }}::class,
+            requireObjectsList: true,
+        );
+    }
+{% endif %}
+{% endfor %}
+{% set childTable = false %}
+{% set parentTable = false %}
+{% for childTableIdentifier in data.relationships['parents'].data %}{% set childTable = lookupIncluded('table', childTableIdentifier.id, included) %}
+
+    /**
+    * @param int ${{ childTable.attributes.primaryKey }}
+    * @param array|null $page
+    * @return {{ data.attributes.objectName }}[]
+    * @throws MinimalismException
+    */
+    public function readBy{{ childTable.attributes.primaryKeyCapitalised }}(
+        int ${{ childTable.attributes.primaryKey }},
+        ?array $page,
+    ): array
+    {
+        $factory = SqlQueryFactory::create({{ data.attributes.objectNamePlural }}Table::class)
+            ->addParameter(field: {{ data.attributes.objectNamePlural }}Table::{{ childTable.attributes.primaryKey }}, value: ${{ childTable.attributes.primaryKey }});
+
+        $this->addPagination($factory, $page, {{ data.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }});
+
+        return $this->data->read(
+            queryFactory: $factory,
+            responseType: {{ data.attributes.objectName }}::class,
+            requireObjectsList: true,
+        );
+    }
+{% endfor %}
 }
