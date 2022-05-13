@@ -5,6 +5,7 @@ use CarloNicora\JsonApi\Objects\ResourceObject;
 use CarloNicora\Minimalism\Exceptions\MinimalismException;
 use CarloNicora\Minimalism\Interfaces\Sql\Interfaces\SqlInterface;
 use CarloNicora\Minimalism\MinimaliserData\Data\TableDefinition\Databases\TableDefinitionTable;
+use CarloNicora\Minimalism\MinimaliserData\Data\Tables\Databases\TablesTable;
 use CarloNicora\Minimalism\MinimaliserData\Interfaces\MinimaliserObjectInterface;
 use CarloNicora\Minimalism\Services\MySQL\Factories\SqlQueryFactory;
 use Exception;
@@ -18,10 +19,10 @@ class TableObject implements MinimaliserObjectInterface
     private ?FieldObject $primaryKey=null;
 
     /** @var string  */
-    private string $objectName;
+    private string $objectName='';
 
     /** @var string  */
-    private string $objectNamePlural;
+    private string $objectNamePlural='';
 
     /** @var bool  */
     private bool $isComplete=true;
@@ -38,19 +39,14 @@ class TableObject implements MinimaliserObjectInterface
      * @throws MinimalismException
      */
     public function __construct(
-        SqlInterface $data,
+        private readonly SqlInterface $data,
         private readonly string $projectName,
         private readonly string $namespace,
         private readonly string $databaseIdentifier,
         private readonly string $name,
     )
     {
-        $this->objectName = ucfirst($this->name);
-        if (str_ends_with($this->objectName, 's')){
-            $this->objectName = substr($this->objectName, 0, -1);
-        }
-
-        $this->objectNamePlural = $this->objectName . 's';
+        $this->pluralize(ucfirst($this->name), $this->objectName, $this->objectNamePlural);
 
         do {
             $factory = SqlQueryFactory::create(
@@ -58,7 +54,7 @@ class TableObject implements MinimaliserObjectInterface
                 overrideDatabaseIdentifier: $databaseIdentifier,
             )->setSql('DESCRIBE ' . $this->name . ';');
 
-            $fields = $data->read(
+            $fields = $this->data->read(
                 queryFactory: $factory,
             );
 
@@ -82,7 +78,7 @@ class TableObject implements MinimaliserObjectInterface
                     )->setSql('ALTER TABLE ' . $this->name . ' ADD COLUMN `createdAt` timestamp NOT NULL;');
 
                     /** @noinspection UnusedFunctionResultInspection */
-                    $data->read(
+                    $this->data->read(
                         queryFactory: $factory,
                     );
                 }
@@ -94,7 +90,7 @@ class TableObject implements MinimaliserObjectInterface
                     )->setSql('ALTER TABLE ' . $this->name . ' ADD COLUMN `updatedAt` timestamp NOT NULL;');
 
                     /** @noinspection UnusedFunctionResultInspection */
-                    $data->read(
+                    $this->data->read(
                         queryFactory: $factory,
                     );
                 }
@@ -112,6 +108,83 @@ class TableObject implements MinimaliserObjectInterface
             if ($newField->isPrimaryKey()){
                 $this->primaryKey = $newField;
             }
+        }
+    }
+
+    /**
+     * @param TableObject[] $tables
+     * @param string $databaseIdentifier
+     * @return void
+     * @throws MinimalismException
+     */
+    public function createForeignKeys(
+        array $tables,
+        string $databaseIdentifier,
+    ): void
+    {
+        $factory = SqlQueryFactory::create(
+            tableClass: TablesTable::class,
+            overrideDatabaseIdentifier: $databaseIdentifier,
+        )->setSql(
+            'SELECT COLUMN_NAME,REFERENCED_TABLE_NAME' .
+            ' FROM information_schema.KEY_COLUMN_USAGE' .
+            ' WHERE TABLE_SCHEMA="' . explode(',', $_ENV[$this->databaseIdentifier])[3] . '"' .
+            ' AND TABLE_NAME="' . $this->name . '"' .
+            ' AND REFERENCED_COLUMN_NAME IS NOT NULL;');
+
+        $foreignKeys = $this->data->read(
+            queryFactory: $factory,
+        );
+
+        $hasFields = false;
+        foreach ($this->fields as $field){
+            if (!$field->isPrimaryKey() && !($field->getName() === 'createdAt' || $field->getName() === 'updatedAt')) {
+                foreach ($foreignKeys ?? [] as $foreignKey) {
+                    if ($foreignKey['COLUMN_NAME'] === $field->getName()) {
+                        foreach ($tables as $table) {
+                            if ($table->getName() === $foreignKey['REFERENCED_TABLE_NAME']) {
+                                $field->setForeignKey(foreignKey: $table);
+                                break 2;
+                            }
+                        }
+                    }
+                }
+
+                if ($field->getForeignKey() === null){
+                    $hasFields = true;
+                }
+            }
+        }
+
+        if (!$hasFields){
+            $this->isComplete = false;
+        }
+    }
+
+    /**
+     * @param string $original
+     * @param string $singular
+     * @param string $plural
+     * @return void
+     */
+    private function pluralize(
+        string $original,
+        string &$singular,
+        string &$plural,
+    ): void
+    {
+        if (strtolower(substr($original, strlen($original)-3)) === 'ies') {
+            $singular = substr($original, 0, -3) . 'y';
+            $plural = $original;
+        } elseif (strtolower(substr($original, strlen($original)-2)) === 'es') {
+            $singular = substr($original, 0, -2);
+            $plural = $original;
+        } elseif (strtolower(substr($original, strlen($original)-1)) === 's') {
+            $singular = substr($original, 0, -1);
+            $plural = $original;
+        } else {
+            $singular = $original;
+            $plural = $original . 's';
         }
     }
 

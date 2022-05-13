@@ -133,21 +133,12 @@ class Minimaliser extends AbstractModel
                 identifier: $this->databaseIdentifier,
             );
 
-            $tables = [];
-
-            foreach ($this->database->getTables() ?? [] as $table) {
-                $selectedTable = $this->initialiseObjectDetails($table);
-                if ($selectedTable !== null){
-                    $tables[] = $selectedTable;
-                }
-            }
-
             $this->writeObjects(
-                tables: $tables,
+                tables: $this->database->getTables(),
             );
 
             $this->writeTests(
-                tables: $tables,
+                tables: $this->database->getTables(),
             );
         } else {
             echo 'No databases specified in the .env file.';
@@ -210,113 +201,5 @@ class Minimaliser extends AbstractModel
                 );
             }
         }
-    }
-
-    /**
-     * @param TableObject $table
-     * @return TableObject|null
-     */
-    private function initialiseObjectDetails(
-        TableObject $table,
-    ): ?TableObject
-    {
-        system('clear');
-
-        $fontBoldUnderlined = "\e[1;4m";
-        $fontClose = "\e[0m";
-
-        echo 'Generating object for table ' . $fontBoldUnderlined . $table->getName() . $fontClose . PHP_EOL;
-        $objectNameSingular = $this->readInput(prompt: 'Singular name of the object', defaultAnswer: $table->getObjectName());
-        $objectNamePlural = $this->readInput(prompt: 'Plural name of the object', defaultAnswer: $table->getObjectNamePlural());
-
-        if ($objectNameSingular !== ''){
-            $table->setObjectName($objectNameSingular);
-        }
-
-        if ($objectNamePlural !== ''){
-            $table->setObjectNamePlural($objectNamePlural);
-        }
-
-        $write = true;
-        if (file_exists($this->minimaliser->getDataDirectory() . $table->getObjectNamePlural())){
-            if ($this->readInput(prompt: 'The object ' . $fontBoldUnderlined . $table->getObjectNamePlural() . $fontClose . ' already exists. Overrite?', isYesNoAnswer: true, defaultAnswer: false) === true){
-                exec(sprintf("rm -rf %s", escapeshellarg($this->minimaliser->getDataDirectory() . $table->getObjectNamePlural())));
-            } else {
-                $write = false;
-            }
-        }
-
-        if ($write === false) {
-            return null;
-        }
-
-        if ($this->readInput(prompt: 'Is this a many-to-many table?', isYesNoAnswer: true, defaultAnswer: false)){
-            $table->setIsNotComplete();
-        }
-        
-        if ($this->readInput(prompt: 'Setup table relationship?', isYesNoAnswer: true, defaultAnswer: true)){
-            $this->initialiseTableRelationships($table);
-        }
-
-        return $table;
-    }
-
-    /**
-     * @param TableObject $table
-     * @return void
-     */
-    private function initialiseTableRelationships(
-        TableObject $table,
-    ): void
-    {
-        do {
-            $fields = 'Select the foreign key (return to end)' . PHP_EOL;
-            foreach ($table->getFields() as $fieldKey => $field) {
-                $fields .= ' ' . $fieldKey . '. ' . $field->getName() . PHP_EOL;
-            }
-            $fields .= PHP_EOL;
-            $fields .= '> ';
-
-            $selectedField = null;
-
-            while ($selectedField === null) {
-                system('clear');
-                $fieldId = $this->readInput(prompt: $fields);
-
-                if ($fieldId === '' || $fieldId === 'x') {
-                    return;
-                }
-
-                if (is_numeric($fieldId) && (int)$fieldId < count($table->getFields())) {
-                    $selectedField = $fieldId;
-                }
-            }
-
-            $field = $table->getFields()[$selectedField];
-
-            $tablePrompt = 'Select the table the field ' . $field->getName() . ' is foreign key for' . PHP_EOL;
-            foreach ($this->database->getTables() as $tableKey => $tableSelection) {
-                $tablePrompt .= ' ' . $tableKey . '. ' . $tableSelection->getName() . PHP_EOL;
-            }
-            $tablePrompt .= ' x. Exit' . PHP_EOL . PHP_EOL;
-            $tablePrompt .= '> ';
-
-            $selectedTableId = null;
-
-            while ($selectedTableId === null) {
-                system('clear');
-                $tableId = $this->readInput(prompt: $tablePrompt);
-
-                if ($tableId === 'x') {
-                    break;
-                }
-
-                if (is_numeric($tableId) && (int)$tableId < count($this->database->getTables())) {
-                    $selectedTableId = $tableId;
-                }
-            }
-            
-            $field->setForeignKey($this->database->getTables()[$selectedTableId]);
-        } while(true);
     }
 }

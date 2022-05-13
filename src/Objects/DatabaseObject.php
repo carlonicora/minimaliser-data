@@ -45,6 +45,13 @@ class DatabaseObject
                 name: $tableName,
             );
         }
+
+        foreach ($this->tables as $table){
+            $table->createForeignKeys(
+                tables: $this->tables,
+                databaseIdentifier: $identifier,
+            );
+        }
     }
 
     /**
