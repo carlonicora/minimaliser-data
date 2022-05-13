@@ -117,15 +117,15 @@ class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.
         {{ data.attributes.objectName }}EditValidator $payload,
     ): HttpCode
     {
-        /** @var ResourceableDataInterface ${{ data.attributes.objectName | lower }} */
+        /** @var {{ data.attributes.objectName }} ${{ data.attributes.objectName | lower }} */
         ${{ data.attributes.objectName | lower }} = $payload->getDataObject();
 
         $this->objectFactory->create({{ data.attributes.objectName }}IO::class)->update{{ data.attributes.objectName }}(
             {{ data.attributes.objectName | lower }}: ${{ data.attributes.objectName | lower }},
         );
 
-        /** @var {{ data.attributes.objectName }} ${{ data.attributes.objectName | lower }} */
-        ${{ data.attributes.objectName | lower }} = $this->builder->ingestResource(
+        /** @noinspection UnusedFunctionResultInspection */
+        $this->builder->ingestResource(
             dataClass: {{ data.attributes.objectName }}Builder::class,
             resource: $payload->getSingleResource(),
             dataObject: ${{ data.attributes.objectName | lower }},

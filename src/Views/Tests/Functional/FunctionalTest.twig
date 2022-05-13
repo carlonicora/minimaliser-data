@@ -1,0 +1,227 @@
+<?php
+namespace {{ meta.namespace }}Tests\Functional\{{ data.attributes.objectNamePlural}};
+
+use CarloNicora\JsonApi\Document;
+use CarloNicora\JsonApi\Objects\ResourceObject;
+use CarloNicora\Minimalism\Services\Encrypter\Encrypter;
+use CarloNicora\Minimalism\TestSuite\Factories\MinimalismServiceFactory;
+use {{ meta.namespace }}Enums\{{ meta.projectName }}Dictionary;
+use CarloNicora\Minimalism\Enums\HttpCode;
+use {{ meta.namespace }}Tests\Abstracts\AbstractFunctionalTest;
+use {{ meta.namespace }}Tests\Data\{{ meta.database }}\{{ data.attributes.objectNamePlural }}Data;
+use Exception;
+use {{ meta.namespace }}Tests\Validators\{{ data.attributes.objectName }}Validator;
+
+class {{ data.attributes.objectNamePlural }} extends AbstractFunctionalTest
+{
+    /**
+     * @test
+     * @return void
+     * @throws Exception
+     * @covers \{{ meta.namespace }}Models\{{ data.attributes.objectNamePlural }}::get()
+     */
+    public function SHOULD_Return{{ data.attributes.objectNamePlural }}_WHEN_UserRequests{{ data.attributes.objectNamePlural }}(
+    ): void
+    {
+        $response = $this->runApiCall(
+            expectedResult: HttpCode::Ok,
+        );
+
+        self::assertEquals(expected: 3, actual: $response->getResourceCount());
+
+        foreach ($response->getResources() as $resource) {
+            {{ data.attributes.objectName }}Validator::validate($resource);
+        }
+    }
+
+    /**
+    * @test
+    * @return void
+    * @throws Exception
+    * @covers \{{ meta.namespace }}Models\{{ data.attributes.objectNamePlural }}::get()
+    */
+    public function SHOULD_Return{{ data.attributes.objectName }}_WHEN_UserRequests{{ data.attributes.objectName }}(
+    ): void
+    {
+        $response = $this->runApiCall(
+            expectedResult: HttpCode::Ok,
+            endpointParams: [{{ data.attributes.objectNamePlural }}Data::Value1->value],
+        );
+
+        self::assertEquals(expected: 1, actual: $response->getResourceCount());
+
+        {{ data.attributes.objectName }}Validator::validate($response->getFirstResource());
+    }
+
+    /**
+    * @return Document[][]
+    * @throws Exception
+    */
+    public function postData(
+    ): array
+    {
+        ${{ data.attributes.objectName | lower }}Document = new Document();
+        ${{ data.attributes.objectName | lower }} = new ResourceObject(
+            type: LinkneticDictionary::{{ data.attributes.objectName }}->value,
+        );
+
+{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.meta.isId == false%}{% if field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt'%}
+        ${{ data.attributes.objectName | lower }}->attributes->add(name: '{{ field.attributes.name}}', value: {% if field.attributes.phpType == 'string' %}'{{ field.attributes.name }}4'{% elseif field.attributes.phpType == 'bool' %}true{% else %}{% if field.meta.DbFieldType == 'DbFieldType::IntDateTime' %}time(){% else %}{% if field.meta.isForeignKey == true %}MinimalismServiceFactory::create(Encrypter::class)->encryptId(1){% else %}4{%endif%}{% endif %}{% endif %});
+{% endif %}{% endif %}{% endfor %}
+
+        ${{ data.attributes.objectName | lower }}Document->addResource(${{ data.attributes.objectName | lower }});
+
+        return [
+            '{{ data.attributes.objectName | lower }}' => [
+                ${{ data.attributes.objectName | lower }}Document
+            ]
+        ];
+    }
+
+    /**
+    * @test
+    * @return void
+    * @throws Exception
+    * @covers \Linknetic\Minimalism\Api\Models\{{ data.attributes.objectNamePlural }}::post()
+    */
+    public function SHOULD_Return412_WHEN_UserCreates{{ data.attributes.objectName }}WithoutPayload(
+    ): void
+    {
+        /** @noinspection UnusedFunctionResultInspection */
+        $this->runApiCall(
+            expectedResult: HttpCode::PreconditionFailed,
+        );
+    }
+
+    /**
+    * @test
+    * @param Document $document
+    * @dataProvider postData
+    * @return void
+    * @throws Exception
+    * @covers \Linknetic\Minimalism\Api\Models\{{ data.attributes.objectNamePlural }}::post()
+    */
+    public function SHOULD_Return{{ data.attributes.objectName }}_WHEN_UserCreates{{ data.attributes.objectName }}(
+        Document $document,
+    ): void
+    {
+        $response = $this->runApiCall(
+            expectedResult: HttpCode::Created,
+            payload: $document,
+        );
+
+        foreach ($response->getResources() as $resource) {
+            {{ data.attributes.objectName }}Validator::validate($resource);
+        }
+    }
+
+    /**
+    * @return Document[][]
+    * @throws Exception
+    */
+    public function patchData(
+    ): array
+    {
+        ${{ data.attributes.objectName | lower }}Document = new Document();
+        ${{ data.attributes.objectName | lower }} = new ResourceObject(
+            type: LinkneticDictionary::{{ data.attributes.objectName }}->value,
+            id: MinimalismServiceFactory::create(Encrypter::class)->encryptId(3),
+        );
+
+{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.meta.isId == false%}{% if field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt'%}
+        ${{ data.attributes.objectName | lower }}->attributes->add(name: '{{ field.attributes.name}}', value: {% if field.attributes.phpType == 'string' %}'{{ field.attributes.name }}NewValue'{% elseif field.attributes.phpType == 'bool' %}false{% else %}{% if field.meta.DbFieldType == 'DbFieldType::IntDateTime' %}time(){% else %}{% if field.meta.isForeignKey == true %}MinimalismServiceFactory::create(Encrypter::class)->encryptId(1){% else %}5{%endif%}{% endif %}{% endif %});
+{% endif %}{% endif %}{% endfor %}
+
+        ${{ data.attributes.objectName | lower }}Document->addResource(${{ data.attributes.objectName | lower }});
+
+        return [
+            '{{ data.attributes.objectName | lower }}' => [
+                ${{ data.attributes.objectName | lower }}Document
+            ]
+        ];
+    }
+
+    /**
+    * @test
+    * @return void
+    * @throws Exception
+    * @covers \Linknetic\Minimalism\Api\Models\{{ data.attributes.objectNamePlural }}::patch()
+    */
+    public function SHOULD_Return412_WHEN_UserUpdates{{ data.attributes.objectName }}WithoutPayload(
+    ): void
+    {
+        /** @noinspection UnusedFunctionResultInspection */
+        $this->runApiCall(
+            expectedResult: HttpCode::PreconditionFailed,
+            endpointParams: [{{ data.attributes.objectNamePlural }}Data::Value3->value],
+        );
+    }
+
+    /**
+    * @test
+    * @param Document $document
+    * @dataProvider patchData
+    * @return void
+    * @throws Exception
+    * @covers \Linknetic\Minimalism\Api\Models\{{ data.attributes.objectNamePlural }}::patch()
+    */
+    public function SHOULD_Return204_WHEN_UserUpdates{{ data.attributes.objectName }}(
+        Document $document,
+    ): void
+    {
+        /** @noinspection UnusedFunctionResultInspection */
+        $this->runApiCall(
+            expectedResult: HttpCode::NoContent,
+            endpointParams: [{{ data.attributes.objectNamePlural }}Data::Value3->value],
+            payload: $document,
+        );
+    }
+
+    /**
+     * @test
+     * @return void
+     * @throws Exception
+     * @covers \{{ meta.namespace }}Models\{{ data.attributes.objectNamePlural }}::delete()
+     */
+    public function SHOULD_Return412_WHEN_UserDeletes{{ data.attributes.objectNamePlural }}Without{{ data.attributes.objectName }}Id(
+    ): void
+    {
+        /** @noinspection UnusedFunctionResultInspection */
+        $this->runApiCall(
+            expectedResult: HttpCode::PreconditionFailed,
+        );
+    }
+
+
+    /**
+    * @test
+    * @return void
+    * @throws Exception
+    * @covers \{{ meta.namespace }}Models\{{ data.attributes.objectNamePlural }}::delete()
+    */
+    public function SHOULD_Return404_WHEN_UserDeletesNonExisting{{ data.attributes.objectNamePlural }}(
+    ): void
+    {
+        /** @noinspection UnusedFunctionResultInspection */
+        $this->runApiCall(
+            expectedResult: HttpCode::NotFound,
+            endpointParams: [1000000000],
+        );
+    }
+
+    /**
+    * @test
+    * @return void
+    * @throws Exception
+    * @covers \{{ meta.namespace }}Models\{{ data.attributes.objectNamePlural }}::delete()
+    */
+    public function SHOULD_Return204_WHEN_UserRequests{{ data.attributes.objectName }}(
+    ): void
+    {
+        /** @noinspection UnusedFunctionResultInspection */
+        $response = $this->runApiCall(
+            expectedResult: HttpCode::NoContent,
+            endpointParams: [{{ data.attributes.objectNamePlural }}Data::Value1->value],
+        );
+    }
+}

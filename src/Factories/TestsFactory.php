@@ -173,69 +173,30 @@ class TestsFactory
 
         $file = self::$twig->transform(
             document: $document,
-            viewFile: 'Tests/Functional/Get',
+            viewFile: 'Tests/Functional/FunctionalTest',
         );
 
-        file_put_contents(self::$testsDirectory . 'Functional' . DIRECTORY_SEPARATOR . $table->getObjectNamePlural() . DIRECTORY_SEPARATOR . 'Get' . $table->getObjectNamePlural() .  '.php', $file, LOCK_EX);
-
-        $file = self::$twig->transform(
-            document: $document,
-            viewFile: 'Tests/Functional/Post',
-        );
-
-        file_put_contents(self::$testsDirectory . 'Functional' . DIRECTORY_SEPARATOR . $table->getObjectNamePlural() . DIRECTORY_SEPARATOR . 'Post' . $table->getObjectNamePlural() .  '.php', $file, LOCK_EX);
-
-        $file = self::$twig->transform(
-            document: $document,
-            viewFile: 'Tests/Functional/Patch',
-        );
-
-        file_put_contents(self::$testsDirectory . 'Functional' . DIRECTORY_SEPARATOR . $table->getObjectNamePlural() . DIRECTORY_SEPARATOR . 'Patch' . $table->getObjectNamePlural() .  '.php', $file, LOCK_EX);
-
-        $file = self::$twig->transform(
-            document: $document,
-            viewFile: 'Tests/Functional/Delete',
-        );
-
-        file_put_contents(self::$testsDirectory . 'Functional' . DIRECTORY_SEPARATOR . $table->getObjectNamePlural() . DIRECTORY_SEPARATOR . 'Delete' . $table->getObjectNamePlural() .  '.php', $file, LOCK_EX);
+        file_put_contents(self::$testsDirectory . 'Functional' . DIRECTORY_SEPARATOR . $table->getObjectNamePlural() . DIRECTORY_SEPARATOR . $table->getObjectNamePlural() .  '.php', $file, LOCK_EX);
 
         foreach ($table->getChildren() ?? [] as $childTable) {
             mkdir(self::$testsDirectory . 'Functional' . DIRECTORY_SEPARATOR . $table->getObjectNamePlural() . DIRECTORY_SEPARATOR . $childTable->getTable()->getObjectNamePlural());
 
             $childDocument = clone($document);
             $childDocument->resources[0]->meta->add(name: 'childTable', value: $childTable->getTable()->getName());
+            if ($childDocument->meta->has(name: 'isComplete')){
+                $childDocument->meta->remove(name: 'isComplete');
+            }
+            $childDocument->meta->add(name: 'isComplete', value: $childTable->getTable()->isComplete());
 
             $file = self::$twig->transform(
                 document: $document,
-                viewFile: 'Tests/Functional/GetChild',
+                viewFile: 'Tests/Functional/FunctionalChildTest',
             );
 
             file_put_contents(self::$testsDirectory . 'Functional' . DIRECTORY_SEPARATOR .
                 $table->getObjectNamePlural() . DIRECTORY_SEPARATOR .
                 $childTable->getTable()->getObjectNamePlural() . DIRECTORY_SEPARATOR .
-                'Get' . $childTable->getTable()->getObjectNamePlural() .  '.php', $file, LOCK_EX);
-
-            if (!$childTable->getTable()->isComplete()) {
-                $file = self::$twig->transform(
-                    document: $document,
-                    viewFile: 'Tests/Functional/PostChild',
-                );
-
-                file_put_contents(self::$testsDirectory . 'Functional' . DIRECTORY_SEPARATOR .
-                    $table->getObjectNamePlural() . DIRECTORY_SEPARATOR .
-                    $childTable->getTable()->getObjectNamePlural() . DIRECTORY_SEPARATOR .
-                    'Post' . $childTable->getTable()->getObjectNamePlural() .  '.php', $file, LOCK_EX);
-
-                $file = self::$twig->transform(
-                    document: $document,
-                    viewFile: 'Tests/Functional/DeleteChild',
-                );
-
-                file_put_contents(self::$testsDirectory . 'Functional' . DIRECTORY_SEPARATOR .
-                    $table->getObjectNamePlural() . DIRECTORY_SEPARATOR .
-                    $childTable->getTable()->getObjectNamePlural() . DIRECTORY_SEPARATOR .
-                    'Delete' . $childTable->getTable()->getObjectNamePlural() .  '.php', $file, LOCK_EX);
-            }
+                $childTable->getTable()->getObjectNamePlural() .  '.php', $file, LOCK_EX);
 
             $childDocument->resources[0]->meta->remove(name: 'childTable');
         }

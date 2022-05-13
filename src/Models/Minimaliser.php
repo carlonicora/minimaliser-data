@@ -8,7 +8,6 @@ use CarloNicora\Minimalism\MinimaliserData\Data;
 use CarloNicora\Minimalism\MinimaliserData\Factories\FileFactory;
 use CarloNicora\Minimalism\MinimaliserData\Factories\TestsFactory;
 use CarloNicora\Minimalism\MinimaliserData\Objects\DatabaseObject;
-use CarloNicora\Minimalism\MinimaliserData\Objects\TableObject;
 use Exception;
 
 class Minimaliser extends AbstractModel
