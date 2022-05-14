@@ -1,3 +1,4 @@
+{% set imports = [] %}
 {% set childTable = false %}
 {% set parentTable = false %}
 {% for childTableIdentifier in data.relationships['children'].data %}
@@ -25,13 +26,37 @@ use CarloNicora\Minimalism\Interfaces\Encrypter\Parameters\PositionedEncryptedPa
 use {{ data.attributes.namespace }}Models\Abstracts\Abstract{{ data.attributes.project }}Model;
 {% if parentTable != false %}
 use {{ data.attributes.namespace }}Data\{{ parentTable.attributes.objectNamePlural }}\Builders\{{ parentTable.attributes.objectName }}Builder;
-use {{ data.attributes.namespace }}Data\{{ parentTable.attributes.objectNamePlural }}\IO\{{ parentTable.attributes.objectName }}IO;
 {% if childTable.attributes.isComplete == false %}
-use {{ data.attributes.namespace }}Data\{{ childTable.attributes.objectNamePlural }}\IO\{{ childTable.attributes.objectName }}IO;
-use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\IO\{{ data.attributes.objectName }}IO;
+{% set name = 'use ' ~ data.attributes.namespace ~ 'Data\\' ~ childTable.attributes.objectNamePlural ~ '\\IO\\' ~ childTable.attributes.objectName ~ 'IO;' %}{% set imports = imports|merge([ name ]) %}
+{{ name }}
+{% set name = 'use ' ~ data.attributes.namespace ~ 'Data\\' ~ data.attributes.objectNamePlural ~ '\\IO\\' ~ data.attributes.objectName ~ 'IO;' %}{% set imports = imports|merge([ name ]) %}
+{{ name }}
 {% endif %}
 use {{ data.attributes.namespace }}Data\{{ childTable.attributes.objectNamePlural }}\DataObjects\{{ childTable.attributes.objectName }};
 {% endif %}
+
+{% set name = 'use ' ~ data.attributes.namespace ~ 'Data\\'~  data.attributes.objectNamePlural ~ '\\IO\\' ~ data.attributes.objectName ~ 'IO;' %}
+{% if name not in imports %}
+{{ name }}
+{% set imports = imports|merge([ name ]) %}
+{% endif %}
+{% for cti in data.relationships['children'].data %}
+{% set ct = lookupIncluded('table', cti.id, included) %}
+{% set name = 'use ' ~ ct.attributes.namespace ~ 'Data\\' ~ ct.attributes.objectNamePlural ~ '\\IO\\' ~ ct.attributes.objectName ~ 'IO;' %}
+{% if name not in imports %}
+{{ name }}
+{% set imports = imports|merge([ name ]) %}
+{% endif %}
+{% for pti in ct.relationships['parents'].data %}
+{% set pt = lookupIncluded('table', pti.id, included) %}
+{% set name = 'use ' ~ data.attributes.namespace ~ 'Data\\' ~ pt.attributes.objectNamePlural ~ '\\IO\\' ~ pt.attributes.objectName ~ 'IO;' %}
+{% if name not in imports %}
+{{ name }}
+{% set imports = imports|merge([ name ]) %}
+{% endif %}
+{% endfor %}
+{% endfor %}
+
 use Exception;
 
 class {{ childTable.attributes.objectNamePlural }} extends Abstract{{ data.attributes.project }}Model

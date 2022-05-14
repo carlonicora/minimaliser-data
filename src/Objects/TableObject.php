@@ -176,8 +176,11 @@ class TableObject implements MinimaliserObjectInterface
         if (strtolower(substr($original, strlen($original)-3)) === 'ies') {
             $singular = substr($original, 0, -3) . 'y';
             $plural = $original;
-        } elseif (strtolower(substr($original, strlen($original)-3)) === 'ses') {
+        } elseif (strtolower(substr($original, strlen($original)-4)) === 'sses') {
             $singular = substr($original, 0, -2);
+            $plural = $original;
+        } elseif (strtolower(substr($original, strlen($original)-3)) === 'ses') {
+            $singular = substr($original, 0, -1);
             $plural = $original;
         } elseif (strtolower(substr($original, strlen($original)-1)) === 's') {
             $singular = substr($original, 0, -1);

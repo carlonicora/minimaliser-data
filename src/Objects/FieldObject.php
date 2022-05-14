@@ -99,6 +99,8 @@ class FieldObject implements MinimaliserObjectInterface
 
         if ($this->sqlFieldType === SqlFieldType::timestamp){
             $response->meta->add(name: 'DbFieldType', value: 'DbFieldType::IntDateTime');
+        } elseif ($this->phpType === 'bool'){
+            $response->meta->add(name: 'DbFieldType', value: 'DbFieldType::Bool');
         }
 
         if ($this->option !== null) {

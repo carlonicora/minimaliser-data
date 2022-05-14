@@ -1,13 +1,23 @@
+{% set fieldExist = false %}
+{% for fieldIdentifier in data.relationships['fields'].data %}
+{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}
+{% if field.meta.isId == false%}{% if field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt'%}{% if field.meta.isForeignKey %}
+{% set fieldExist = true %}
+{% set break = true %}
+{% endif %}{% endif %}{% endif %}
+{% endfor %}
 <?php
 namespace {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\Validators;
 
-use CarloNicora\Minimalism\Interfaces\Encrypter\Interfaces\EncrypterInterface;
 use CarloNicora\Minimalism\Services\DataValidator\Abstracts\AbstractDataValidator;
 use CarloNicora\Minimalism\Services\DataValidator\Objects\AttributeValidator;
 use CarloNicora\Minimalism\Services\DataValidator\Objects\DocumentValidator;
 use CarloNicora\Minimalism\Services\DataValidator\Objects\ResourceValidator;
 use CarloNicora\Minimalism\Services\DataValidator\Enums\DataTypes;
+{% if fieldExist == true%}
+use CarloNicora\Minimalism\Interfaces\Encrypter\Interfaces\EncrypterInterface;
 use Exception;
+{% endif %}
 
 class {{ data.attributes.objectName }}CreateValidator extends AbstractDataValidator
 {
@@ -15,7 +25,9 @@ class {{ data.attributes.objectName }}CreateValidator extends AbstractDataValida
      *
      */
     public function __construct(
+{% if fieldExist == true%}
         private readonly EncrypterInterface $encrypter,
+{% endif %}
     )
     {
         $this->documentValidator = new DocumentValidator();
@@ -23,30 +35,32 @@ class {{ data.attributes.objectName }}CreateValidator extends AbstractDataValida
         $resourceValidator = new ResourceValidator(type: '{{ data.attributes.objectName | lower }}');
 
 {% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.meta.isId == false%}{% if field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt'%}
-        $resourceValidator->addAttributeValidator(new AttributeValidator(name: '{{ field.attributes.name }}'{% if field.attributes.isNullable == false %}, isRequired: true{% endif %}{% if field.meta.isForeignKey is not defined %}{% if field.attributes.phpType == 'int' %},type: DataTypes::int{% elseif field.attributes.phpType == 'bool' %},type: DataTypes::int{% endif%}{% endif %}));
+        $resourceValidator->addAttributeValidator(new AttributeValidator(name: '{{ field.attributes.name }}'{% if field.attributes.isNullable == false %}, isRequired: true{% endif %}{% if field.meta.isForeignKey is not defined %}{% if field.attributes.phpType == 'int' %},type: DataTypes::int{% elseif field.attributes.phpType == 'bool' %},type: DataTypes::bool{% endif%}{% endif %}));
 {% endif %}{% endif %}{% endfor %}
 
         $this->documentValidator->addResourceValidator(
                 validator: $resourceValidator
         );
     }
+{% if fieldExist == true%}
 
-        /**
-        * @return bool
-        * @throws Exception
-        */
-        public function validateData(
-        ): bool
-        {
+    /**
+    * @return bool
+    * @throws Exception
+    */
+    public function validateData(
+    ): bool
+    {
 {% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.meta.isId == false%}{% if field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt'%}{% if field.meta.isForeignKey %}
-                $this->getDocument()->getSingleResource()->attributes->update(
-                        name: '{{ field.attributes.name }}',
-                        value: $this->encrypter->decryptId(
-                                $this->getDocument()->getSingleResource()->attributes->get(name: '{{ field.attributes.name }}'),
-                        ),
-                );
+        $this->getDocument()->getSingleResource()->attributes->update(
+                name: '{{ field.attributes.name }}',
+                value: $this->encrypter->decryptId(
+                        $this->getDocument()->getSingleResource()->attributes->get(name: '{{ field.attributes.name }}'),
+                ),
+        );
 
 {% endif %}{% endif %}{% endif %}{% endfor %}
-                return true;
-        }
+        return true;
+    }
+{% endif %}
 }

@@ -86,7 +86,7 @@ class Minimaliser extends AbstractModel
                         break;
                 }
             }
-        } else if ($defaultAnswer !== null && $textResponse === ''){
+        } elseif ($defaultAnswer !== null && $textResponse === ''){
             $response = $defaultAnswer;
         } else {
             $response = $textResponse;

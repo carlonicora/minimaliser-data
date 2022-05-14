@@ -28,7 +28,9 @@ use CarloNicora\Minimalism\Enums\HttpCode;
 use Exception;
 use {{ meta.namespace }}Tests\Abstracts\AbstractFunctionalTest;
 use {{ meta.namespace }}Tests\Data\Linknetic\{{ data.attributes.objectNamePlural }}Data;
+{% if parentTable != false %}
 use {{ meta.namespace }}Tests\Data\Linknetic\{{ parentTable.attributes.objectNamePlural }}Data;
+{% endif %}
 use {{ meta.namespace }}Tests\Validators\{{ childName }}Validator;
 
 class {{ childTable.attributes.objectNamePlural }} extends AbstractFunctionalTest

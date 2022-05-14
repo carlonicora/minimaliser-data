@@ -215,11 +215,11 @@ class {{ data.attributes.objectNamePlural }} extends AbstractFunctionalTest
     * @throws Exception
     * @covers \{{ meta.namespace }}Models\{{ data.attributes.objectNamePlural }}::delete()
     */
-    public function SHOULD_Return204_WHEN_UserRequests{{ data.attributes.objectName }}(
+    public function SHOULD_Return204_WHEN_UserDeletes{{ data.attributes.objectName }}(
     ): void
     {
         /** @noinspection UnusedFunctionResultInspection */
-        $response = $this->runApiCall(
+        $this->runApiCall(
             expectedResult: HttpCode::NoContent,
             endpointParams: [{{ data.attributes.objectNamePlural }}Data::Value1->value],
         );

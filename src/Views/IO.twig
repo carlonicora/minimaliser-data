@@ -1,3 +1,4 @@
+{% set functions = [] %}
 <?php
 namespace {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\IO;
 
@@ -50,7 +51,7 @@ class {{ data.attributes.objectName }}IO extends Abstract{{ data.attributes.proj
     * @throws MinimalismException
     */
     public function readList(
-        ?array $page,
+        ?array $page=null,
     ): array
     {
         $factory = SqlQueryFactory::create({{ data.attributes.objectNamePlural }}Table::class);
@@ -123,6 +124,8 @@ class {{ data.attributes.objectName }}IO extends Abstract{{ data.attributes.proj
 {% if parentTableIdentifier.id != data.id %}
 {% set parentTable = lookupIncluded('table', parentTableIdentifier.id, included) %}
 {% if parentTable != false %}
+{% set name = 'readBy' ~ parentTable.attributes.primaryKeyCapitalised %}
+{% if name not in functions %}
 
     /**
     * @param int ${{ parentTable.attributes.primaryKey }}
@@ -132,7 +135,7 @@ class {{ data.attributes.objectName }}IO extends Abstract{{ data.attributes.proj
     */
     public function readBy{{ parentTable.attributes.primaryKeyCapitalised }}(
         int ${{ parentTable.attributes.primaryKey }},
-        ?array $page,
+        ?array $page=null,
     ): array
     {
         $factory = SqlQueryFactory::create({{ data.attributes.objectNamePlural }}Table::class)
@@ -149,11 +152,15 @@ class {{ data.attributes.objectName }}IO extends Abstract{{ data.attributes.proj
             requireObjectsList: true,
         );
     }
+{% set functions = functions|merge([name]) %}
+{% endif %}
 {% set break = true %}
 {% endif %}
 {% endif %}
 {% endfor %}
 {% else %}
+{% set name = 'readBy' ~ childTable.attributes.primaryKeyCapitalised %}
+{% if name not in functions %}
 
     /**
     * @param int ${{ childTable.attributes.primaryKey }}
@@ -163,7 +170,7 @@ class {{ data.attributes.objectName }}IO extends Abstract{{ data.attributes.proj
     */
     public function readBy{{ childTable.attributes.primaryKeyCapitalised }}(
         int ${{ childTable.attributes.primaryKey }},
-        ?array $page,
+        ?array $page=null,
     ): array
     {
         $factory = SqlQueryFactory::create({{ data.attributes.objectNamePlural }}Table::class)
@@ -178,11 +185,15 @@ class {{ data.attributes.objectName }}IO extends Abstract{{ data.attributes.proj
             requireObjectsList: true,
         );
     }
+{% set functions = functions|merge([name]) %}
+{% endif %}
 {% endif %}
 {% endfor %}
 {% set childTable = false %}
 {% set parentTable = false %}
 {% for childTableIdentifier in data.relationships['parents'].data %}{% set childTable = lookupIncluded('table', childTableIdentifier.id, included) %}
+{% set name = 'readBy' ~ childTable.attributes.primaryKeyCapitalised %}
+{% if name not in functions %}
 
     /**
     * @param int ${{ childTable.attributes.primaryKey }}
@@ -192,7 +203,7 @@ class {{ data.attributes.objectName }}IO extends Abstract{{ data.attributes.proj
     */
     public function readBy{{ childTable.attributes.primaryKeyCapitalised }}(
         int ${{ childTable.attributes.primaryKey }},
-        ?array $page,
+        ?array $page=null,
     ): array
     {
         $factory = SqlQueryFactory::create({{ data.attributes.objectNamePlural }}Table::class)
@@ -206,6 +217,8 @@ class {{ data.attributes.objectName }}IO extends Abstract{{ data.attributes.proj
             requireObjectsList: true,
         );
     }
+{% set functions = functions|merge([name]) %}
+{% endif %}
 {% endfor %}
 {% else %}
 {% set tableLeft = false %}
@@ -217,6 +230,8 @@ class {{ data.attributes.objectName }}IO extends Abstract{{ data.attributes.proj
 {% set tableRight = table %}
 {% endif %}
 {% endfor %}
+{% set name = 'readBy' ~ tableLeft.attributes.primaryKeyCapitalised ~ tableRight.attributes.primaryKeyCapitalised  %}
+{% if name not in functions %}
 
     /**
     * @param int ${{ tableLeft.attributes.primaryKey }}
@@ -238,5 +253,7 @@ class {{ data.attributes.objectName }}IO extends Abstract{{ data.attributes.proj
             responseType: {{ data.attributes.objectName }}::class,
         );
     }
+{% set functions = functions|merge([name]) %}
+{% endif %}
 {% endif %}
 }
