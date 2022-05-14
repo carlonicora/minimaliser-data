@@ -62,7 +62,7 @@ class {{ data.attributes.objectNamePlural }} extends AbstractFunctionalTest
     {
         ${{ data.attributes.objectName | lower }}Document = new Document();
         ${{ data.attributes.objectName | lower }} = new ResourceObject(
-            type: LinkneticDictionary::{{ data.attributes.objectName }}->value,
+            type: {{ meta.projectName }}Dictionary::{{ data.attributes.objectName }}->value,
         );
 
 {% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.meta.isId == false%}{% if field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt'%}
@@ -124,7 +124,7 @@ class {{ data.attributes.objectNamePlural }} extends AbstractFunctionalTest
     {
         ${{ data.attributes.objectName | lower }}Document = new Document();
         ${{ data.attributes.objectName | lower }} = new ResourceObject(
-            type: LinkneticDictionary::{{ data.attributes.objectName }}->value,
+            type: {{ meta.projectName }}Dictionary::{{ data.attributes.objectName }}->value,
             id: MinimalismServiceFactory::create(Encrypter::class)->encryptId(3),
         );
 

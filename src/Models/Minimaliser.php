@@ -103,7 +103,13 @@ class Minimaliser extends AbstractModel
     ): never
     {
         system('clear');
-        $this->projectName = $this->readInput(prompt: 'Project Name');
+        $namespace = $this->minimaliser->getNamespace();
+        if (str_ends_with($namespace, '\\')){
+            $namespace = substr($namespace, 0, -1);
+        }
+        $namespace = explode('\\',$namespace);
+        $this->projectName = $namespace[0] . $namespace[count($namespace)-1];
+        //$this->projectName = $this->readInput(prompt: 'Project Name');
 
         if (array_key_exists('MINIMALISM_SERVICE_MYSQL', $_ENV) && $_ENV['MINIMALISM_SERVICE_MYSQL'] !== ''){
             $dbs = explode(',', $_ENV['MINIMALISM_SERVICE_MYSQL']);
