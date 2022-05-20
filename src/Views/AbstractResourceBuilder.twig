@@ -23,11 +23,11 @@ abstract class Abstract{{ meta.projectName }}ResourceBuilder extends AbstractRes
      * @param Path $path
      */
     public function __construct(
-        protected EncrypterInterface $encrypter,
+        EncrypterInterface $encrypter,
         protected Path $path,
     )
     {
-        parent::__construct($this->encrypter);
+        parent::__construct($encrypter);
     }
 
     /**

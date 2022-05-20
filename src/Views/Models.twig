@@ -37,10 +37,10 @@ class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.
     }
 
     /**
-    * @param int $id
-    * @return void
-    * @throws Exception
-    */
+     * @param int $id
+     * @return void
+     * @throws Exception
+     */
     private function readSingle(
         int $id,
     ): void
@@ -57,10 +57,10 @@ class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.
     }
 
     /**
-    * @param array|null $page
-    * @return void
-    * @throws Exception
-    */
+     * @param array|null $page
+     * @return void
+     * @throws Exception
+     */
     private function readList(
         ?array $page,
     ): void
@@ -79,10 +79,10 @@ class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.
     }
 
     /**
-    * @param {{ data.attributes.objectName }}CreateValidator $payload
-    * @return HttpCode
-    * @throws Exception
-    */
+     * @param {{ data.attributes.objectName }}CreateValidator $payload
+     * @return HttpCode
+     * @throws Exception
+     */
     public function post(
         {{ data.attributes.objectName }}CreateValidator $payload,
     ): HttpCode
@@ -109,16 +109,22 @@ class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.
 
 
     /**
-    * @param {{ data.attributes.objectName }}EditValidator $payload
-    * @return HttpCode
-    * @throws Exception
-    */
+     * @param PositionedEncryptedParameter $id
+     * @param {{ data.attributes.objectName }}EditValidator $payload
+     * @return HttpCode
+     * @throws Exception
+     */
     public function patch(
+        PositionedEncryptedParameter $id,
         {{ data.attributes.objectName }}EditValidator $payload,
     ): HttpCode
     {
         /** @var {{ data.attributes.objectName }} ${{ data.attributes.objectName | lower }} */
         ${{ data.attributes.objectName | lower }} = $payload->getDataObject();
+
+        if (${{ data.attributes.objectName | lower }}->getId() !== $id->getValue()){
+            throw new MinimalismException(status: HttpCode::PreconditionFailed, message: 'Id does not match payload id');
+        }
 
         /** @noinspection UnusedFunctionResultInspection */
         $this->builder->ingestResource(
@@ -135,10 +141,10 @@ class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.
     }
 
     /**
-    * @param PositionedEncryptedParameter $id
-    * @return HttpCode
-    * @throws MinimalismException|Exception
-    */
+     * @param PositionedEncryptedParameter $id
+     * @return HttpCode
+     * @throws MinimalismException|Exception
+     */
     public function delete(
         PositionedEncryptedParameter $id,
     ): HttpCode
