@@ -2,10 +2,10 @@
 namespace CarloNicora\Minimalism\MinimaliserData\Objects;
 
 use CarloNicora\JsonApi\Objects\ResourceObject;
+use CarloNicora\Minimalism\Interfaces\Sql\Enums\SqlFieldOption;
+use CarloNicora\Minimalism\Interfaces\Sql\Enums\SqlFieldType;
+use CarloNicora\Minimalism\MinimaliserData\Enums\MySqlFieldType;
 use CarloNicora\Minimalism\MinimaliserData\Interfaces\MinimaliserObjectInterface;
-use CarloNicora\Minimalism\Services\MySQL\Enums\FieldOption;
-use CarloNicora\Minimalism\Services\MySQL\Enums\FieldType;
-use CarloNicora\Minimalism\Services\MySQL\Enums\SqlFieldType;
 use Exception;
 
 class FieldObject implements MinimaliserObjectInterface
@@ -13,14 +13,14 @@ class FieldObject implements MinimaliserObjectInterface
     /** @var string  */
     private string $name;
 
-    /** @var SqlFieldType  */
-    private SqlFieldType $sqlFieldType;
+    /** @var MySqlFieldType  */
+    private MySqlFieldType $sqlFieldType;
 
     /** @var int|null  */
     private ?int $length=null;
 
-    /** @var FieldType  */
-    private FieldType $type;
+    /** @var SqlFieldType  */
+    private SqlFieldType $type;
 
     /** @var string  */
     private string $phpType;
@@ -28,8 +28,8 @@ class FieldObject implements MinimaliserObjectInterface
     /** @var bool  */
     private bool $isNullable;
     
-    /** @var FieldOption|null  */
-    private ?FieldOption $option=null;
+    /** @var SqlFieldOption|null  */
+    private ?SqlFieldOption $option=null;
 
     /** @var TableObject|null  */
     private ?TableObject $foreignKey=null;
@@ -58,11 +58,11 @@ class FieldObject implements MinimaliserObjectInterface
             }
         }
 
-        $this->sqlFieldType = SqlFieldType::from($type);
+        $this->sqlFieldType = MySqlFieldType::from($type);
 
-        if ($this->sqlFieldType === SqlFieldType::timestamp) {
+        if ($this->sqlFieldType === MySqlFieldType::timestamp) {
             $this->phpType = 'int';
-        } elseif ($this->sqlFieldType === SqlFieldType::tinyint && $this->length === 1) {
+        } elseif ($this->sqlFieldType === MySqlFieldType::tinyint && $this->length === 1) {
             $this->phpType = 'bool';
         } else {
             $this->phpType = $this->sqlFieldType->getPhpType($length);
@@ -73,9 +73,9 @@ class FieldObject implements MinimaliserObjectInterface
 
         if ($field['Key'] === 'PRI'){
             if ($field['Extra'] === 'auto_increment'){
-                $this->option = FieldOption::AutoIncrement;
+                $this->option = SqlFieldOption::AutoIncrement;
             } else {
-                $this->option = FieldOption::PrimaryKey;
+                $this->option = SqlFieldOption::PrimaryKey;
             }
         }
     }
@@ -97,7 +97,7 @@ class FieldObject implements MinimaliserObjectInterface
         $response->attributes->add(name: 'phpType', value: $this->phpType);
         $response->attributes->add(name: 'type', value: $this->type->name);
 
-        if ($this->sqlFieldType === SqlFieldType::timestamp){
+        if ($this->sqlFieldType === MySqlFieldType::timestamp){
             $response->meta->add(name: 'DbFieldType', value: 'DbFieldType::IntDateTime');
         } elseif ($this->phpType === 'bool'){
             $response->meta->add(name: 'DbFieldType', value: 'DbFieldType::Bool');
@@ -107,7 +107,7 @@ class FieldObject implements MinimaliserObjectInterface
             $response->meta->add(name: 'option', value: $this->option->name);
         }
         $response->meta->add(name: 'capitalisedName', value: ucfirst($this->name));
-        $response->meta->add(name: 'isId', value: $this->option === FieldOption::AutoIncrement);
+        $response->meta->add(name: 'isId', value: $this->option === SqlFieldOption::AutoIncrement);
         
         if ($this->foreignKey !== null && $this->foreignKey->isComplete()){
             $response->meta->add(name: 'isForeignKey', value: true);
@@ -127,7 +127,7 @@ class FieldObject implements MinimaliserObjectInterface
     public function isPrimaryKey(
     ): bool
     {
-        return ($this->option === FieldOption::AutoIncrement || $this->option === FieldOption::PrimaryKey);
+        return ($this->option === SqlFieldOption::AutoIncrement || $this->option === SqlFieldOption::PrimaryKey);
     }
 
     /**

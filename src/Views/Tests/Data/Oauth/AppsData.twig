@@ -2,8 +2,8 @@
 namespace {{ meta.namespace }}Tests\Data\Oauth;
 
 use CarloNicora\Minimalism\Interfaces\Sql\Interfaces\SqlDataObjectInterface;
-use CarloNicora\Minimalism\Services\OAuth\Data\App;
-use CarloNicora\Minimalism\Services\OAuth\Databases\OAuth\Tables\AppsTable;
+use CarloNicora\Minimalism\Services\OAuth\Data\Apps\Databases\AppsTable;
+use CarloNicora\Minimalism\Services\OAuth\Data\Apps\DataObjects\App;
 use CarloNicora\Minimalism\TestSuite\Interfaces\TableDataInterface;
 
 enum AppsData: int implements TableDataInterface
@@ -45,7 +45,7 @@ enum AppsData: int implements TableDataInterface
     ): App
     {
         $response = new App();
-        $response->setAppId($this->value);
+        $response->setId($this->value);
         $response->setName($name);
         $response->setUrl($url);
         $response->setClientId($clientId);

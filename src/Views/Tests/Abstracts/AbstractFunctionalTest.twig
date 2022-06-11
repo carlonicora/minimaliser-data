@@ -75,7 +75,7 @@ abstract class AbstractFunctionalTest extends \CarloNicora\Minimalism\TestSuite\
                 if (array_key_exists($parametersCount, $parameters)) {
                     if (is_int($parameters[$parametersCount])) {
                         $parameterValue = $encrypter->encryptId($parameters[$parametersCount]);
-                    } else if ($parameters[$parametersCount] instanceof BackedEnum) {
+                    } elseif ($parameters[$parametersCount] instanceof BackedEnum) {
                         if (is_int($parameters[$parametersCount]->value)) {
                             $parameterValue = $encrypter->encryptId($parameters[$parametersCount]->value);
                         } else {

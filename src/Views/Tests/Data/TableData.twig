@@ -28,10 +28,12 @@ enum {{ data.attributes.objectNamePlural }}Data: int implements TableDataInterfa
     ): SqlDataObjectInterface
     {
         return match($this) {
+{% set boolValue=true %}
 {% for i in 1..3 %}
             self::Value{{ i }} => $this->map(
+
 {% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.meta.isId == false%}{% if field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt'%}
-                {{ field.attributes.name}}:{% if field.meta.isForeignKey == true%}{{ field.meta.tableObjectNamePlural }}Data::Value{{ i }}{% else %}{% if field.attributes.phpType == 'string' %}'{{ field.attributes.name }}{{ i }}'{% elseif field.attributes.phpType == 'bool' %}true{% else %}{% if field.meta.DbFieldType == 'DbFieldType::IntDateTime' %}time(){% else %}{{ i }}{% endif %}{% endif %}{% endif %},
+                {{ field.attributes.name}}:{% if field.meta.isForeignKey == true%}{{ field.meta.tableObjectNamePlural }}Data::Value{{ i }}{% else %}{% if field.attributes.phpType == 'string' %}'{{ field.attributes.name }}{{ i }}'{% elseif field.attributes.phpType == 'bool' %}{% if boolValue == true %}true{% set boolValue = false %}{% else %}false{% set boolValue = true %}{% endif %}{% else %}{% if field.meta.DbFieldType == 'DbFieldType::IntDateTime' %}time(){% else %}{{ i }}{% endif %}{% endif %}{% endif %},
 {% endif %}{% endif %}{% endfor %}
             ),
 {% endfor %}

@@ -3,8 +3,8 @@ namespace {{ meta.namespace }}Tests\Data\Oauth;
 
 use CarloNicora\Minimalism\Interfaces\Sql\Interfaces\SqlDataObjectInterface;
 use {{ meta.namespace }}Tests\Data\{{ meta.database }}\UsersData;
-use CarloNicora\Minimalism\Services\OAuth\Data\Token;
-use CarloNicora\Minimalism\Services\OAuth\Databases\OAuth\Tables\TokensTable;
+use CarloNicora\Minimalism\Services\OAuth\Data\Tokens\Databases\TokensTable;
+use CarloNicora\Minimalism\Services\OAuth\Data\Tokens\DataObjects\Token;
 use CarloNicora\Minimalism\TestSuite\Interfaces\TableDataInterface;
 
 enum TokensData: string implements TableDataInterface

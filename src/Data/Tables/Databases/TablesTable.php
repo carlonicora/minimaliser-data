@@ -1,12 +1,14 @@
 <?php
 namespace CarloNicora\Minimalism\MinimaliserData\Data\Tables\Databases;
 
-use CarloNicora\Minimalism\Services\MySQL\Data\SqlField;
-use CarloNicora\Minimalism\Services\MySQL\Data\SqlTable;
 
-#[SqlTable(name: 'tables', databaseIdentifier: '')]
+use CarloNicora\Minimalism\Interfaces\Sql\Attributes\SqlFieldAttribute;
+use CarloNicora\Minimalism\Interfaces\Sql\Attributes\SqlTableAttribute;
+use CarloNicora\Minimalism\Interfaces\Sql\Enums\SqlFieldType;
+
+#[SqlTableAttribute(name: 'tables', databaseIdentifier: '')]
 enum TablesTable
 {
-    #[SqlField]
+    #[SqlFieldAttribute(fieldType: SqlFieldType::String)]
     case tableName;
 }

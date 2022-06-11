@@ -3,14 +3,14 @@
 namespace {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\IO;
 
 use CarloNicora\Minimalism\Exceptions\MinimalismException;
-use CarloNicora\Minimalism\Services\MySQL\Factories\SqlJoinFactory;
+use CarloNicora\Minimalism\Interfaces\Sql\Factories\SqlJoinFactory;
+use CarloNicora\Minimalism\Interfaces\Sql\Factories\SqlQueryFactory;
 use {{ data.attributes.namespace }}Data\Abstracts\Abstract{{ data.attributes.project }}SqlIO;
 use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\Databases\{{ data.attributes.objectNamePlural }}Table;
 use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\DataObjects\{{ data.attributes.objectName }};
 {% if data.attributes.isComplete == true %}
 use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\Caches\{{ data.attributes.objectNamePlural }}CacheFactory;
 {% endif %}
-use CarloNicora\Minimalism\Services\MySQL\Factories\SqlQueryFactory;
 use Exception;
 {% set childTable = false %}
 {% set parentTable = false %}
@@ -140,7 +140,7 @@ class {{ data.attributes.objectName }}IO extends Abstract{{ data.attributes.proj
     {
         $factory = SqlQueryFactory::create({{ data.attributes.objectNamePlural }}Table::class)
 {% if parentTable != false%}
-            ->addJoin(new SqlJoinFactory(primaryKey: {{ data.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }}, foreignKey: {{ childTable.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }}))
+            ->addJoin(SqlJoinFactory::create(primaryKey: {{ data.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }}, foreignKey: {{ childTable.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }}))
 {% endif %}
             ->addParameter(field: {{ childTable.attributes.objectNamePlural }}Table::{{ parentTable.attributes.primaryKey }}, value: ${{ parentTable.attributes.primaryKey }});
 
@@ -174,7 +174,7 @@ class {{ data.attributes.objectName }}IO extends Abstract{{ data.attributes.proj
     ): array
     {
         $factory = SqlQueryFactory::create({{ data.attributes.objectNamePlural }}Table::class)
-            ->addJoin(new SqlJoinFactory(primaryKey: {{ data.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }}, foreignKey: {{ childTable.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }}))
+            ->addJoin(SqlJoinFactory::create(primaryKey: {{ data.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }}, foreignKey: {{ childTable.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }}))
             ->addParameter(field: {{ childTable.attributes.objectNamePlural }}Table::{{ childTable.attributes.primaryKey }}, value: ${{ childTable.attributes.primaryKey }});
 
         $this->addPagination($factory, $page, {{ data.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }});

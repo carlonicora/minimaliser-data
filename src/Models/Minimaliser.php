@@ -18,9 +18,6 @@ class Minimaliser extends AbstractModel
     /** @var SqlInterface  */
     private SqlInterface $data;
 
-    /** @var DatabaseObject  */
-    private DatabaseObject $database;
-
     /** @var string|null  */
     private ?string $databaseIdentifier=null;
 
@@ -131,7 +128,7 @@ class Minimaliser extends AbstractModel
                 }
             }
 
-            $this->database = new DatabaseObject(
+            $database = new DatabaseObject(
                 data: $this->data,
                 projectName: $this->projectName,
                 namespace: $this->minimaliser->getNamespace(),
@@ -139,11 +136,11 @@ class Minimaliser extends AbstractModel
             );
 
             $this->writeObjects(
-                tables: $this->database->getTables(),
+                tables: $database->getTables(),
             );
 
             $this->writeTests(
-                tables: $this->database->getTables(),
+                tables: $database->getTables(),
             );
         } else {
             echo 'No databases specified in the .env file.';

@@ -2,9 +2,9 @@
 namespace CarloNicora\Minimalism\MinimaliserData\Objects;
 
 use CarloNicora\Minimalism\Exceptions\MinimalismException;
+use CarloNicora\Minimalism\Interfaces\Sql\Factories\SqlQueryFactory;
 use CarloNicora\Minimalism\Interfaces\Sql\Interfaces\SqlInterface;
 use CarloNicora\Minimalism\MinimaliserData\Data\Tables\Databases\TablesTable;
-use CarloNicora\Minimalism\Services\MySQL\Factories\SqlQueryFactory;
 
 class DatabaseObject
 {

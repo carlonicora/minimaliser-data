@@ -3,11 +3,11 @@ namespace CarloNicora\Minimalism\MinimaliserData\Objects;
 
 use CarloNicora\JsonApi\Objects\ResourceObject;
 use CarloNicora\Minimalism\Exceptions\MinimalismException;
+use CarloNicora\Minimalism\Interfaces\Sql\Factories\SqlQueryFactory;
 use CarloNicora\Minimalism\Interfaces\Sql\Interfaces\SqlInterface;
 use CarloNicora\Minimalism\MinimaliserData\Data\TableDefinition\Databases\TableDefinitionTable;
 use CarloNicora\Minimalism\MinimaliserData\Data\Tables\Databases\TablesTable;
 use CarloNicora\Minimalism\MinimaliserData\Interfaces\MinimaliserObjectInterface;
-use CarloNicora\Minimalism\Services\MySQL\Factories\SqlQueryFactory;
 use Exception;
 
 class TableObject implements MinimaliserObjectInterface
@@ -138,7 +138,7 @@ class TableObject implements MinimaliserObjectInterface
 
         $hasFields = false;
         foreach ($this->fields as $field){
-            if (!$field->isPrimaryKey() && !($field->getName() === 'createdAt' || $field->getName() === 'updatedAt')) {
+            if (!$field->isPrimaryKey() && !in_array($field->getName(), ['createdAt','updatedAt'])) {
                 foreach ($foreignKeys ?? [] as $foreignKey) {
                     if ($foreignKey['COLUMN_NAME'] === $field->getName()) {
                         foreach ($tables as $table) {

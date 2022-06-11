@@ -1,12 +1,12 @@
 <?php
 namespace {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\Databases;
 
-use CarloNicora\Minimalism\Services\MySQL\Data\SqlField;
-use CarloNicora\Minimalism\Services\MySQL\Data\SqlTable;
-use CarloNicora\Minimalism\Services\MySQL\Enums\FieldOption;
-use CarloNicora\Minimalism\Services\MySQL\Enums\FieldType;
+use CarloNicora\Minimalism\Interfaces\Sql\Attributes\SqlTableAttribute;
+use CarloNicora\Minimalism\Interfaces\Sql\Attributes\SqlFieldAttribute;
+use CarloNicora\Minimalism\Interfaces\Sql\Enums\SqlFieldOption;
+use CarloNicora\Minimalism\Interfaces\Sql\Enums\SqlFieldType;
 
-#[SqlTable(name: '{{ data.id }}', databaseIdentifier: '{{ data.attributes.databaseIdentifier }}')]
+#[SqlTableAttribute(name: '{{ data.id }}', databaseIdentifier: '{{ data.attributes.databaseIdentifier }}')]
 enum {{ data.attributes.objectNamePlural }}Table
 {
 {% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}
@@ -18,7 +18,7 @@ enum {{ data.attributes.objectNamePlural }}Table
 {% elseif field.meta.option %}
 {% set option = field.meta.option %}
 {% endif %}
-    #[SqlField(fieldType: FieldType::{{ field.attributes.type }}{% if option != false %} ,fieldOption: FieldOption::{{ option }}{% endif %})]
+    #[SqlFieldAttribute(fieldType: SqlFieldType::{{ field.attributes.type }}{% if option != false %} ,fieldOption: SqlFieldOption::{{ option }}{% endif %})]
     case {{ field.attributes.name }};
 {% endfor %}
 }
