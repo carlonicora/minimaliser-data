@@ -1,15 +1,23 @@
 <?php
 namespace {{ meta.namespace }}Enums;
 
+{% if data.attributes %}
+use {{ meta.namespace }}Data\{{ data.attributes.objectNamePlural }}\Databases\{{ data.attributes.objectNamePlural }}Table;
+{% else %}
 {% for table in data %}
 use {{ meta.namespace }}Data\{{ table.attributes.objectNamePlural }}\Databases\{{ table.attributes.objectNamePlural }}Table;
 {% endfor %}
+{% endif %}
 
 enum {{ meta.projectName }}Dictionary: string
 {
-{% for table in data %}
+{% if data.attributes %}
+    case {{ data.attributes.objectName }}='{{ data.attributes.objectName | lower}}';
+{% else %}
+    {% for table in data %}
     case {{ table.attributes.objectName }}='{{ table.attributes.objectName | lower}}';
-{% endfor %}
+    {% endfor %}
+{% endif %}
 
     /**
      * @return string
@@ -18,9 +26,13 @@ enum {{ meta.projectName }}Dictionary: string
     ): string
     {
         return match ($this) {
-{% for table in data %}
+{% if data.attributes %}
+            self::{{ data.attributes.objectName }} => '{{ data.attributes.primaryKey }}',
+{% else %}
+    {% for table in data %}
             self::{{ table.attributes.objectName }} => '{{ table.attributes.primaryKey }}',
-{% endfor %}
+    {% endfor %}
+{% endif %}
         };
     }
 
@@ -31,9 +43,13 @@ enum {{ meta.projectName }}Dictionary: string
     ): string
     {
         return match ($this) {
-{% for table in data %}
+{% if data.attributes %}
+            self::{{ data.attributes.objectName }} => '{{ data.attributes.objectNamePlural | lower}}',
+{% else %}
+    {% for table in data %}
             self::{{ table.attributes.objectName }} => '{{ table.attributes.objectNamePlural | lower}}',
-{% endfor %}
+    {% endfor %}
+{% endif %}
         };
     }
 
@@ -44,9 +60,13 @@ enum {{ meta.projectName }}Dictionary: string
     ): string
     {
         return match ($this) {
-{% for table in data %}
+{% if data.attributes %}
+            self::{{ data.attributes.objectName }} => {{ data.attributes.objectNamePlural}}Table::class,
+{% else %}
+    {% for table in data %}
             self::{{ table.attributes.objectName }} => {{ table.attributes.objectNamePlural}}Table::class,
-{% endfor %}
+    {% endfor %}
+{% endif %}
         };
     }
 

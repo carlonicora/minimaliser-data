@@ -18,7 +18,7 @@
     "ext-json": "*",
     "ext-readline": "*",
     "carlonicora/jsonapi": "~3.0",
-    "carlonicora/minimalism": "~13.4",
+    "carlonicora/minimalism": "~13.5",
     "carlonicora/minimalism-interface-sql": "~1.0",
     "carlonicora/minimalism-service-twig": "~2.0"
   },
