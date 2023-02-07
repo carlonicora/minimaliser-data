@@ -84,4 +84,26 @@ abstract class Abstract{{ meta.projectName }}ResourceBuilder extends AbstractRes
             )
         );
     }
+
+    /**
+     * @param {{ meta.projectName }}Dictionary $currentType
+     * @param ResourceObject $resource
+     * @param BackedEnum $childType
+     * @return void
+     * @throws Exception
+     */
+    protected function addChildLink(
+        {{ meta.projectName }}Dictionary $currentType,
+        ResourceObject $resource,
+        BackedEnum $childType,
+    ): void {
+        $resource->relationship($childType->value)->links->add(
+            new Link(
+                name: 'related',
+                href: $this->path->getUrl()
+                    . $childType->value
+                    . '?' . $currentType->getIdKey() . '=' . $this->encrypter->encryptId($this->data->getId())
+            )
+        );
+    }
 }
