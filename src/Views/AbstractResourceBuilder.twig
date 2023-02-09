@@ -6,6 +6,7 @@ use CarloNicora\JsonApi\Objects\Link;
 use CarloNicora\JsonApi\Objects\ResourceObject;
 use CarloNicora\Minimalism\Interfaces\Encrypter\Interfaces\EncrypterInterface;
 use {{ meta.namespace }}Enums\{{ meta.projectName }}Dictionary;
+use CarloNicora\Minimalism\Interfaces\DictionaryInterface;
 use CarloNicora\Minimalism\Services\Path;
 use CarloNicora\Minimalism\Services\ResourceBuilder\Abstracts\AbstractResourceBuilder;
 use Exception;
@@ -89,20 +90,20 @@ abstract class Abstract{{ meta.projectName }}ResourceBuilder extends AbstractRes
     /**
      * @param {{ meta.projectName }}Dictionary $currentType
      * @param ResourceObject $resource
-     * @param BackedEnum $childType
+     * @param DictionaryInterface|BackedEnum $childType
      * @return void
      * @throws Exception
      */
     protected function addChildLink(
         {{ meta.projectName }}Dictionary $currentType,
         ResourceObject $resource,
-        BackedEnum $childType,
+        DictionaryInterface|BackedEnum $childType,
     ): void {
         $resource->relationship($childType->value)->links->add(
             new Link(
                 name: 'related',
                 href: $this->path->getUrl()
-                    . $childType->value
+                    . $childType->getEndpoint()
                     . '?' . $currentType->getIdKey() . '=' . $this->encrypter->encryptId($this->data->getId())
             )
         );
