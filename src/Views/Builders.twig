@@ -1,90 +1,9 @@
 <?php
 namespace {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\Builders;
 
-use CarloNicora\JsonApi\Objects\Link;
-use CarloNicora\JsonApi\Objects\ResourceObject;
-use CarloNicora\Minimalism\Enums\HttpCode;
-use {{ data.attributes.namespace }}Data\Abstracts\Abstract{{ data.attributes.project }}ResourceBuilder;
-use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\DataObjects\{{ data.attributes.objectName }};
-use {{ data.attributes.namespace }}Enums\{{ data.attributes.project }}Dictionary;
-use CarloNicora\Minimalism\Services\ResourceBuilder\Interfaces\ResourceableDataInterface;
-use CarloNicora\Minimalism\Exceptions\MinimalismException;
-use Exception;
+use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\Abstracts\Abstract{{ data.attributes.objectName }}Builder;
 
-class {{ data.attributes.objectName }}Builder extends Abstract{{ data.attributes.project }}ResourceBuilder
+class {{ data.attributes.objectName }}Builder extends Abstract{{ data.attributes.objectName }}Builder
 {
-    /**
-     * @param {{ data.attributes.objectName }} $data
-     * @return ResourceObject
-     * @throws Exception
-     */
-    public function buildResource(
-        ResourceableDataInterface $data,
-    ): ResourceObject
-    {
-        $this->data = $data;
 
-        $response = $this->create({{ data.attributes.project }}Dictionary::{{ data.attributes.objectName }});
-{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.meta.isId == false%}{% if field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt'%}
-
-        $response->attributes->add(
-            name: '{{ field.attributes.name }}',
-            value: {% if field.meta.isForeignKey %}$this->encrypter->encryptId({% endif %}$data->get{{ field.meta.capitalisedName }}(){% if field.meta.isForeignKey %}){% endif %},
-        );
-{% endif %}{% endif %}{% endfor %}
-{% if data.relationships['parents'] %}{% for tableIdentifier in data.relationships['parents'].data %}{% set table = lookupIncluded('table', tableIdentifier.id, included) %}
-
-        $this->addRelationshipRelatedLink(
-            resource: $response,
-            type: {{ data.attributes.project }}Dictionary::{{ table.attributes.objectName }},
-            id: $data->get{{ table.attributes.primaryKeyCapitalised }}(),
-        );
-{% endfor %}{% endif %}
-{% if data.relationships['children'] %}{% for tableIdentifier in data.relationships['children'].data %}{% set table = lookupIncluded('table', tableIdentifier.id, included) %}
-
-        $this->addRelationshipRelatedLink(
-            resource: $response,
-            type: {{ data.attributes.project }}Dictionary::{{ data.attributes.objectName }},
-            id: $data->getId(),
-            childType: {{ data.attributes.project }}Dictionary::{{ table.attributes.objectName }},
-        );
-{% endfor %}{% endif %}
-
-        return $response;
-    }
-
-    /**
-    * @param ResourceObject $resource
-    * @param {{ data.attributes.objectName }}|null $dataObject
-    * @return {{ data.attributes.objectName }}|null
-    * @throws MinimalismException|Exception
-    */
-    public function ingestResource(
-        ResourceObject $resource,
-        ?ResourceableDataInterface $dataObject,
-    ): ?ResourceableDataInterface
-    {
-        if ($dataObject === null) {
-{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.meta.isId == false and field.attributes.isNullable == false %}{% if field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt'%}
-            if (!$resource->attributes->has(name: '{{ field.attributes.name}}')){
-                throw new MinimalismException(status: HttpCode::PreconditionFailed, message: 'Required attribute {{ field.attributes.name}} missing');
-            }
-
-{% endif %}{% endif %}{% endfor %}
-            $response = new {{ data.attributes.objectName }}();
-            if ($resource->id !== null) {
-               $response->setId($resource->id);
-            }
-        } else {
-            $response = $dataObject;
-        }
-{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.meta.isId == false%}{% if field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt'%}
-
-        if ($resource->attributes->has(name: '{{ field.attributes.name}}')) {
-            $response->set{{ field.meta.capitalisedName }}({{ field.attributes.name }}: $resource->attributes->get(name: '{{ field.attributes.name }}'));
-        }
-{% endif %}{% endif %}{% endfor %}
-
-        return $response;
-    }
 }

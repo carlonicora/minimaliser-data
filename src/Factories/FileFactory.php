@@ -45,20 +45,25 @@ class FileFactory
         TableObject $table,
     ): void
     {
-        mkdir(self::$dataDirectory . $table->getObjectNamePlural());
-        
+        if (!is_dir(self::$dataDirectory . $table->getObjectNamePlural())) {
+            mkdir(self::$dataDirectory . $table->getObjectNamePlural());
+        }
+
         self::createObjectFile(type: Generator::Databases,table: $table);
         self::createObjectFile(type: Generator::DataObjects, table: $table);
+        self::createObjectFile(type: Generator::AbstractIO, table: $table);
         self::createObjectFile(type: Generator::IO, table: $table);
 
         if ($table->isComplete()) {
+            self::createObjectFile(type: Generator::AbstractBuilders,table: $table);
             self::createObjectFile(type: Generator::Builders,table: $table);
             //self::createObjectFile(type: Generator::Factories, table: $table);
             self::createObjectFile(type: Generator::UpdaterValidators, table: $table);
             self::createObjectFile(type: Generator::CreatorValidators, table: $table);
             self::createObjectFile(type: Generator::Models, table: $table);
+            self::createObjectFile(type: Generator::AbstractCaches, table: $table);
             self::createObjectFile(type: Generator::Caches, table: $table);
-            
+
             foreach ($table->getChildren() ?? [] as $foreignKey){
                 self::createObjectFile(type: Generator::ChildModels, table: $table, childTable: $foreignKey->getTable());
             }
@@ -83,6 +88,16 @@ class FileFactory
             mkdir(directory: $folderName, recursive: true);
         }
 
+        if ($childTable === null) {
+            $fileName = $folderName . $type->getFileName(table: $table);
+        } else {
+            $fileName = $folderName . $type->getFileName(table: $childTable);
+        }
+
+        if (!$type->overrides() && file_exists($fileName)){
+            return;
+        }
+
         $document = new Document();
 
         $tableResource = $table->generateResourceObject();
@@ -90,7 +105,6 @@ class FileFactory
             $tableResource->meta->add(name: 'childTable', value: $childTable->getName());
         }
         $document->addResource($tableResource);
-
 
         $file = self::$twig->transform(
             document: $document,
@@ -141,44 +155,44 @@ class FileFactory
             mkdir($modelsDirectory);
         }
 
-        $file = self::$twig->transform(
-            document: $document,
-            viewFile: SharedFile::Dictionary->name,
-        );
-
-        file_put_contents($enumDirectory . DIRECTORY_SEPARATOR . SharedFile::Dictionary->getFileName($projectName), $file);
-        
         $abstractDirectory = self::$dataDirectory . 'Abstracts';
         if (!file_exists($abstractDirectory)){
             mkdir($abstractDirectory);
         }
 
+        # DICTIONARY
+        $file = self::$twig->transform(
+            document: $document,
+            viewFile: SharedFile::Dictionary->name,
+        );
+        file_put_contents($enumDirectory . DIRECTORY_SEPARATOR . SharedFile::Dictionary->getFileName($projectName), $file);
+
+        # CREATE DATA/ABSTRACTS/DATA OBJECT
         $file = self::$twig->transform(
             document: $document,
             viewFile: SharedFile::AbstractDataObject->name,
         );
-
         file_put_contents($abstractDirectory . DIRECTORY_SEPARATOR . SharedFile::AbstractDataObject->getFileName($projectName), $file);
 
+        # CREATE DATA/ABSTRACTS/RESOURCE BUILDER
         $file = self::$twig->transform(
             document: $document,
             viewFile: SharedFile::AbstractResourceBuilder->name,
         );
-
         file_put_contents($abstractDirectory . DIRECTORY_SEPARATOR . SharedFile::AbstractResourceBuilder->getFileName($projectName), $file);
 
+        # CREATE DATA/ABSTRACTS/SQL IO
         $file = self::$twig->transform(
             document: $document,
             viewFile: SharedFile::AbstractSqlIO->name,
         );
-
         file_put_contents($abstractDirectory . DIRECTORY_SEPARATOR . SharedFile::AbstractSqlIO->getFileName($projectName), $file);
 
+        # CREATE MODELS/ABSTRACTS/MODEL
         $file = self::$twig->transform(
             document: $document,
             viewFile: SharedFile::AbstractModel->name,
         );
-
         file_put_contents($modelsDirectory . DIRECTORY_SEPARATOR . SharedFile::AbstractModel->getFileName($projectName), $file);
     }
 }

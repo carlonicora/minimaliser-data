@@ -1,0 +1,23 @@
+<?php
+namespace {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\Abstracts;
+
+use CarloNicora\Minimalism\Interfaces\Cache\Interfaces\CacheBuilderInterface;
+use {{ data.attributes.namespace }}Enums\{{ data.attributes.project }}Dictionary;
+use CarloNicora\Minimalism\Services\Cacher\Factories\CacheBuilderFactory;
+
+abstract class Abstract{{ data.attributes.objectNamePlural}}CacheFactory extends CacheBuilderFactory
+{
+    /**
+     * @param int ${{ data.attributes.primaryKey}}
+     * @return CacheBuilderInterface
+     */
+    public static function {{ data.attributes.objectName | lower }}(
+        int ${{ data.attributes.primaryKey}},
+    ): CacheBuilderInterface
+    {
+        return self::create(
+            cacheName: {{ data.attributes.project }}Dictionary::{{ data.attributes.objectName }}->getIdKey(),
+            identifier: ${{ data.attributes.primaryKey}}
+        );
+    }
+}

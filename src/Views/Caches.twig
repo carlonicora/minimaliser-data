@@ -1,23 +1,9 @@
 <?php
 namespace {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\Caches;
 
-use CarloNicora\Minimalism\Interfaces\Cache\Interfaces\CacheBuilderInterface;
-use {{ data.attributes.namespace }}Enums\{{ data.attributes.project }}Dictionary;
-use CarloNicora\Minimalism\Services\Cacher\Factories\CacheBuilderFactory;
+use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\Abstracts\Abstract{{ data.attributes.objectNamePlural}}CacheFactory;
 
-class {{ data.attributes.objectNamePlural}}CacheFactory extends CacheBuilderFactory
+class {{ data.attributes.objectNamePlural}}CacheFactory extends Abstract{{ data.attributes.objectNamePlural}}CacheFactory
 {
-    /**
-     * @param int ${{ data.attributes.primaryKey}}
-     * @return CacheBuilderInterface
-     */
-    public static function {{ data.attributes.objectName | lower }}(
-        int ${{ data.attributes.primaryKey}},
-    ): CacheBuilderInterface
-    {
-        return self::create(
-            cacheName: {{ data.attributes.project }}Dictionary::{{ data.attributes.objectName }}->getIdKey(),
-            identifier: ${{ data.attributes.primaryKey}}
-        );
-    }
+
 }
