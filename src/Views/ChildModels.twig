@@ -25,7 +25,7 @@ use CarloNicora\Minimalism\Enums\HttpCode;
 use CarloNicora\Minimalism\Interfaces\Encrypter\Parameters\PositionedEncryptedParameter;
 use {{ data.attributes.namespace }}Models\Abstracts\Abstract{{ data.attributes.project }}Model;
 {% if parentTable != false %}
-use {{ data.attributes.namespace }}Data\{{ parentTable.attributes.objectNamePlural }}\Builders\{{ parentTable.attributes.objectName }}Builder;
+use {{ data.attributes.namespace }}Data\{{ parentTable.attributes.objectNamePlural }}\{{ parentTable.attributes.objectName }}Builder;
 {% if childTable.attributes.isComplete == false %}
 {% set name = 'use ' ~ data.attributes.namespace ~ 'Data\\' ~ childTable.attributes.objectNamePlural ~ '\\IO\\' ~ childTable.attributes.objectName ~ 'IO;' %}{% set imports = imports|merge([ name ]) %}
 {{ name }}
