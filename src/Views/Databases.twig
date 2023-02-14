@@ -6,7 +6,7 @@ use CarloNicora\Minimalism\Interfaces\Sql\Attributes\SqlFieldAttribute;
 use CarloNicora\Minimalism\Interfaces\Sql\Enums\SqlFieldOption;
 use CarloNicora\Minimalism\Interfaces\Sql\Enums\SqlFieldType;
 
-#[SqlTableAttribute(name: '{{ data.id }}', databaseIdentifier: '{{ data.attributes.databaseIdentifier }}')]
+#[SqlTableAttribute(name: '{{ data.attributes.tableName }}', databaseIdentifier: '{{ data.attributes.databaseIdentifier }}')]
 enum {{ data.attributes.objectNamePlural }}Table
 {
 {% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}

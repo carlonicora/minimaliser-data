@@ -19,6 +19,9 @@ class TableObject implements MinimaliserObjectInterface
     private ?FieldObject $primaryKey=null;
 
     /** @var string  */
+    private string $tableName='';
+
+    /** @var string  */
     private string $objectName='';
 
     /** @var string  */
@@ -43,16 +46,22 @@ class TableObject implements MinimaliserObjectInterface
         private readonly string $projectName,
         private readonly string $namespace,
         private readonly string $databaseIdentifier,
-        private readonly string $name,
+        private string $name,
     )
     {
+        $this->tableName = $this->name;
+
+        if (str_starts_with($this->name, '_')){
+            $this->name = substr($this->name, 1);
+        }
+
         $this->pluralize(ucfirst($this->name), $this->objectName, $this->objectNamePlural);
 
         do {
             $factory = SqlQueryFactory::create(
                 tableClass: TableDefinitionTable::class,
                 overrideDatabaseIdentifier: $databaseIdentifier,
-            )->setSql('DESCRIBE ' . $this->name . ';');
+            )->setSql('DESCRIBE `' . $this->tableName . '`;');
 
             $fields = $this->data->read(
                 queryFactory: $factory,
@@ -75,7 +84,7 @@ class TableObject implements MinimaliserObjectInterface
                     $factory = SqlQueryFactory::create(
                         tableClass: TableDefinitionTable::class,
                         overrideDatabaseIdentifier: $databaseIdentifier,
-                    )->setSql('ALTER TABLE ' . $this->name . ' ADD COLUMN `createdAt` timestamp NOT NULL;');
+                    )->setSql('ALTER TABLE `' . $this->tableName . '` ADD COLUMN `createdAt` timestamp NOT NULL;');
 
                     /** @noinspection UnusedFunctionResultInspection */
                     $this->data->read(
@@ -87,7 +96,7 @@ class TableObject implements MinimaliserObjectInterface
                     $factory = SqlQueryFactory::create(
                         tableClass: TableDefinitionTable::class,
                         overrideDatabaseIdentifier: $databaseIdentifier,
-                    )->setSql('ALTER TABLE ' . $this->name . ' ADD COLUMN `updatedAt` timestamp NOT NULL;');
+                    )->setSql('ALTER TABLE `' . $this->tableName . '` ADD COLUMN `updatedAt` timestamp NOT NULL;');
 
                     /** @noinspection UnusedFunctionResultInspection */
                     $this->data->read(
@@ -129,7 +138,7 @@ class TableObject implements MinimaliserObjectInterface
             'SELECT COLUMN_NAME,REFERENCED_TABLE_NAME' .
             ' FROM information_schema.KEY_COLUMN_USAGE' .
             ' WHERE TABLE_SCHEMA="' . explode(',', $_ENV[$this->databaseIdentifier])[3] . '"' .
-            ' AND TABLE_NAME="' . $this->name . '"' .
+            ' AND TABLE_NAME="' . $this->tableName . '"' .
             ' AND REFERENCED_COLUMN_NAME IS NOT NULL;');
 
         $foreignKeys = $this->data->read(
@@ -201,6 +210,15 @@ class TableObject implements MinimaliserObjectInterface
     }
 
     /**
+     * @return string
+     */
+    public function getTableName(
+    ): string
+    {
+        return $this->tableName;
+    }
+
+    /**
      * @return FieldObject[]
      */
     public function getFields(
@@ -235,9 +253,11 @@ class TableObject implements MinimaliserObjectInterface
         $response->attributes->add(name: 'project', value: $this->projectName);
         $response->attributes->add(name: 'namespace', value: $this->namespace);
         $response->attributes->add(name: 'databaseIdentifier', value: $this->databaseIdentifier);
+        $response->attributes->add(name: 'tableName', value: $this->tableName);
         $response->attributes->add(name: 'objectName', value: $this->objectName);
         $response->attributes->add(name: 'objectNamePlural', value: $this->objectNamePlural);
         $response->attributes->add(name: 'isComplete', value: $this->isComplete);
+        $response->attributes->add(name: 'isManyToMany', value: $this->name !== $this->tableName);
 
         foreach ($this->fields as $field) {
             if ($field->isPrimaryKey()) {
@@ -357,5 +377,9 @@ class TableObject implements MinimaliserObjectInterface
     ): array
     {
         return $this->children;
+    }
+
+    public function isManyToMany(): bool {
+        return $this->name !== $this->tableName;
     }
 }
