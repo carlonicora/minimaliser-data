@@ -64,7 +64,9 @@ class FileFactory
             self::createObjectFile(type: Generator::Caches, table: $table);
 
             foreach ($table->getChildren() ?? [] as $foreignKey){
-                self::createObjectFile(type: Generator::ChildModels, table: $table, childTable: $foreignKey->getTable());
+                if (!$foreignKey->getTable()->isManyToMany()) {
+                    self::createObjectFile(type: Generator::ChildModels, table: $table, childTable: $foreignKey->getTable());
+                }
             }
         }
     }

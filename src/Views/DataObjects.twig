@@ -14,8 +14,10 @@ use {{ data.attributes.namespace }}Enums\{{ data.attributes.project }}Dictionary
 #[DbTable(tableClass: {{ data.attributes.objectNamePlural }}Table::class)]
 class {{ data.attributes.objectName }} extends Abstract{{ data.attributes.project }}DataObject
 {
+{% if data.attributes.isManyToMany == false %}
     /** @var {{ data.attributes.project }}Dictionary  */
     protected {{ data.attributes.project }}Dictionary $type = {{ data.attributes.project }}Dictionary::{{ data.attributes.objectName }};
+{% endif %}
 {% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt'%}
 
     /** @var {{ field.attributes.phpType }}{% if field.attributes.isNullable == true%}|null{% endif %}  */

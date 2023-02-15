@@ -31,15 +31,15 @@ abstract class Abstract{{ data.attributes.objectName }}Builder extends Abstract{
             value: {% if field.meta.isForeignKey %}$this->encrypter->encryptId({% endif %}$data->get{{ field.meta.capitalisedName }}(){% if field.meta.isForeignKey %}){% endif %},
         );
 {% endif %}{% endif %}{% endfor %}
-{% if data.relationships['parents'] %}{% for tableIdentifier in data.relationships['parents'].data %}{% set table = lookupIncluded('table', tableIdentifier.id, included) %}
+{% if data.relationships['parents'] %}{% for tableIdentifier in data.relationships['parents'].data %}{% set table = lookupIncluded('table', tableIdentifier.id, included) %}{% if table.attributes.isManyToMany == false %}
 
         $this->addRelationshipRelatedLink(
             resource: $response,
             type: {{ data.attributes.project }}Dictionary::{{ table.attributes.objectName }},
             id: $data->get{{ table.attributes.primaryKeyCapitalised }}(),
         );
-{% endfor %}{% endif %}
-{% if data.relationships['children'] %}{% for tableIdentifier in data.relationships['children'].data %}{% set table = lookupIncluded('table', tableIdentifier.id, included) %}
+{% endif %}{% endfor %}{% endif %}
+{% if data.relationships['children'] %}{% for tableIdentifier in data.relationships['children'].data %}{% set table = lookupIncluded('table', tableIdentifier.id, included) %}{% if table.attributes.isManyToMany == false %}
 
         $this->addRelationshipRelatedLink(
             resource: $response,
@@ -47,7 +47,7 @@ abstract class Abstract{{ data.attributes.objectName }}Builder extends Abstract{
             id: $data->getId(),
             childType: {{ data.attributes.project }}Dictionary::{{ table.attributes.objectName }},
         );
-{% endfor %}{% endif %}
+{% endif %}{% endfor %}{% endif %}
 
         return $response;
     }
