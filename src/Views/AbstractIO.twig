@@ -46,10 +46,10 @@ abstract class Abstract{{ data.attributes.objectName }}IO extends Abstract{{ dat
 {% if data.attributes.isComplete == true %}
 
     /**
-    * @param array|null $page
-    * @return {{ data.attributes.objectName }}[]
-    * @throws MinimalismException
-    */
+     * @param array|null $page
+     * @return {{ data.attributes.objectName }}[]
+     * @throws MinimalismException
+     */
     public function readList(
         ?array $page=null,
     ): array
@@ -67,10 +67,10 @@ abstract class Abstract{{ data.attributes.objectName }}IO extends Abstract{{ dat
 {% endif %}
 
     /**
-    * @param {{ data.attributes.objectName }} ${{ data.attributes.objectName | lower }}
-    * @return {{ data.attributes.objectName }}
-    * @throws Exception
-    */
+     * @param {{ data.attributes.objectName }} ${{ data.attributes.objectName | lower }}
+     * @return {{ data.attributes.objectName }}
+     * @throws Exception
+     */
     public function insert(
         {{ data.attributes.objectName }} ${{ data.attributes.objectName | lower}},
     ): {{ data.attributes.objectName }}
@@ -82,10 +82,10 @@ abstract class Abstract{{ data.attributes.objectName }}IO extends Abstract{{ dat
     }
 
     /**
-    * @param int $id
-    * @return void
-    * @throws MinimalismException
-    */
+     * @param int $id
+     * @return void
+     * @throws MinimalismException
+     */
     public function deleteById(
         int $id,
     ): void
@@ -104,9 +104,9 @@ abstract class Abstract{{ data.attributes.objectName }}IO extends Abstract{{ dat
 {% if data.attributes.isComplete %}
 
     /**
-    * @param {{ data.attributes.objectName }} ${{ data.attributes.objectName | lower }}
-    * @return void
-    */
+     * @param {{ data.attributes.objectName }} ${{ data.attributes.objectName | lower }}
+     * @return void
+     */
     public function update{{ data.attributes.objectName }}(
         {{ data.attributes.objectName }} ${{ data.attributes.objectName | lower }},
     ): void
@@ -118,33 +118,42 @@ abstract class Abstract{{ data.attributes.objectName }}IO extends Abstract{{ dat
 {% endif %}
         );
     }
-{% set childTable = false %}
-{% set parentTable = false %}
-{% for childTableIdentifier in data.relationships['children'].data %}{% set childTable = lookupIncluded('table', childTableIdentifier.id, included) %}
-{% if childTable.attributes.isComplete == false %}
-{% for parentTableIdentifier in childTable.relationships['parents'].data %}
-{% if parentTableIdentifier.id != data.id %}
-{% set parentTable = lookupIncluded('table', parentTableIdentifier.id, included) %}
-{% if parentTable != false %}
-{% set name = 'readBy' ~ parentTable.attributes.primaryKeyCapitalised %}
-{% if name not in functions %}
+{% endif %}
+{% if data.attributes.isManyToMany %}
+{% set foreignKey1 = false %}
+{% set foreignKey2 = false %}
+{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}
+{% if field.meta.FK %}
+{% if foreignKey1 == false %}
+    {% set foreignKey1 = field.meta.FK %}
+{% else %}
+    {% set foreignKey2 = field.meta.FK %}
+{% endif %}
+{% endif %}
+{% endfor %}
+{% if foreignKey1 != false and foreignKey2 != false %}
+{% include 'Components/manyToManyReadForeignByForeign.twig' with {'primaryKey': data.attributes.primaryKey, 'objectName': data.attributes.objectName, 'tableName': data.attributes.objectNamePlural, 'foreignLeft': foreignKey1, 'foreignRight': foreignKey2} %}
+
+{% include 'Components/manyToManyReadForeignByForeign.twig' with {'primaryKey': data.attributes.primaryKey, 'objectName': data.attributes.objectName, 'tableName': data.attributes.objectNamePlural, 'foreignLeft': foreignKey2, 'foreignRight': foreignKey1} %}
+
+{% endif %}
+{% else %}
+{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}
+{% if field.meta.FK %}
 
     /**
-    * @param int ${{ parentTable.attributes.primaryKey }}
-    * @param array|null $page
-    * @return {{ data.attributes.objectName }}[]
-    * @throws MinimalismException
-    */
-    public function readBy{{ parentTable.attributes.primaryKeyCapitalised }}(
-        int ${{ parentTable.attributes.primaryKey }},
+     * @param int ${{ field.meta.FK.field }}
+     * @param array|null $page
+     * @return {{ data.attributes.objectName }}[]
+     * @throws MinimalismException
+     */
+    public function readBy{{ field.meta.FK.fieldCapitalised }}(
+        int ${{ field.meta.FK.field }},
         ?array $page=null,
     ): array
     {
         $factory = SqlQueryFactory::create({{ data.attributes.objectNamePlural }}Table::class)
-{% if parentTable != false%}
-            ->addJoin(SqlJoinFactory::create(primaryKey: {{ data.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }}, foreignKey: {{ childTable.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }}))
-{% endif %}
-            ->addParameter(field: {{ childTable.attributes.objectNamePlural }}Table::{{ parentTable.attributes.primaryKey }}, value: ${{ parentTable.attributes.primaryKey }});
+            ->addParameter({{ data.attributes.objectNamePlural }}Table::{{ field.meta.FK.table }}_{{ field.meta.FK.field }}, ${{ field.meta.FK.field }});
 
         $this->addPagination($factory, $page, {{ data.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }});
 
@@ -154,108 +163,7 @@ abstract class Abstract{{ data.attributes.objectName }}IO extends Abstract{{ dat
             requireObjectsList: true,
         );
     }
-{% set functions = functions|merge([name]) %}
-{% endif %}
-{% set break = true %}
-{% endif %}
 {% endif %}
 {% endfor %}
-{% else %}
-{% set name = 'readBy' ~ childTable.attributes.primaryKeyCapitalised %}
-{% if name not in functions %}
-
-    /**
-    * @param int ${{ childTable.attributes.primaryKey }}
-    * @param array|null $page
-    * @return {{ data.attributes.objectName }}[]
-    * @throws MinimalismException
-    */
-    public function readBy{{ childTable.attributes.primaryKeyCapitalised }}(
-        int ${{ childTable.attributes.primaryKey }},
-        ?array $page=null,
-    ): array
-    {
-        $factory = SqlQueryFactory::create({{ data.attributes.objectNamePlural }}Table::class)
-            ->addJoin(SqlJoinFactory::create(primaryKey: {{ data.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }}, foreignKey: {{ childTable.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }}))
-            ->addParameter(field: {{ childTable.attributes.objectNamePlural }}Table::{{ childTable.attributes.primaryKey }}, value: ${{ childTable.attributes.primaryKey }});
-
-        $this->addPagination($factory, $page, {{ data.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }});
-
-        return $this->data->read(
-            queryFactory: $factory,
-            responseType: {{ data.attributes.objectName }}::class,
-            requireObjectsList: true,
-        );
-    }
-{% set functions = functions|merge([name]) %}
-{% endif %}
-{% endif %}
-{% endfor %}
-{% set childTable = false %}
-{% set parentTable = false %}
-{% for childTableIdentifier in data.relationships['parents'].data %}{% set childTable = lookupIncluded('table', childTableIdentifier.id, included) %}
-{% set name = 'readBy' ~ childTable.attributes.primaryKeyCapitalised %}
-{% if name not in functions %}
-
-    /**
-    * @param int ${{ childTable.attributes.primaryKey }}
-    * @param array|null $page
-    * @return {{ data.attributes.objectName }}[]
-    * @throws MinimalismException
-    */
-    public function readBy{{ childTable.attributes.primaryKeyCapitalised }}(
-        int ${{ childTable.attributes.primaryKey }},
-        ?array $page=null,
-    ): array
-    {
-        $factory = SqlQueryFactory::create({{ data.attributes.objectNamePlural }}Table::class)
-            ->addParameter(field: {{ data.attributes.objectNamePlural }}Table::{{ childTable.attributes.primaryKey }}, value: ${{ childTable.attributes.primaryKey }});
-
-        $this->addPagination($factory, $page, {{ data.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }});
-
-        return $this->data->read(
-            queryFactory: $factory,
-            responseType: {{ data.attributes.objectName }}::class,
-            requireObjectsList: true,
-        );
-    }
-{% set functions = functions|merge([name]) %}
-{% endif %}
-{% endfor %}
-{% else %}
-{% set tableLeft = false %}
-{% set tableRight = false %}
-{% for tableIdentifier in data.relationships['parents'].data %}{% set table = lookupIncluded('table', tableIdentifier.id, included) %}
-{% if tableLeft == false %}
-{% set tableLeft = table %}
-{% else %}
-{% set tableRight = table %}
-{% endif %}
-{% endfor %}
-{% set name = 'readBy' ~ tableLeft.attributes.primaryKeyCapitalised ~ tableRight.attributes.primaryKeyCapitalised  %}
-{% if name not in functions %}
-
-    /**
-    * @param int ${{ tableLeft.attributes.primaryKey }}
-    * @param int ${{ tableRight.attributes.primaryKey }}
-    * @return {{ data.attributes.objectName }}
-    * @throws MinimalismException
-    */
-    public function readBy{{ tableLeft.attributes.primaryKeyCapitalised }}{{ tableRight.attributes.primaryKeyCapitalised }}(
-        int ${{ tableLeft.attributes.primaryKey }},
-        int ${{ tableRight.attributes.primaryKey }},
-    ): {{ data.attributes.objectName }}
-    {
-        $factory = SqlQueryFactory::create({{ data.attributes.objectNamePlural }}Table::class)
-            ->addParameter({{ data.attributes.objectNamePlural }}Table::{{ tableLeft.attributes.primaryKey }}, ${{ tableLeft.attributes.primaryKey }})
-            ->addParameter({{ data.attributes.objectNamePlural }}Table::{{ tableRight.attributes.primaryKey }}, ${{ tableRight.attributes.primaryKey }});
-
-        return $this->data->read(
-            queryFactory: $factory,
-            responseType: {{ data.attributes.objectName }}::class,
-        );
-    }
-{% set functions = functions|merge([name]) %}
-{% endif %}
 {% endif %}
 }

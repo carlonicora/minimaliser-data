@@ -62,6 +62,35 @@ abstract class Abstract{{ meta.projectName }}ResourceBuilder extends AbstractRes
     }
 
     /**
+     * @param ResourceObject $resource
+     * @param string $type
+     * @param int|null $id
+     * @return void
+     * @throws Exception
+     */
+    protected function addSimplifiedRelationshipRelatedLink(
+        ResourceObject $resource,
+        string $type,
+        ?int $id,
+    ): void
+    {
+        if ($id !== null) {
+            $href = $this->path->getUrl()
+                . strtolower($type) . '/' . $this->encrypter->encryptId($id);
+        } else {
+            $href = $resource->links->get('self')->href
+                . '/' . strtolower($type) . '/';
+        }
+
+        $resource->relationship($type)->links->add(
+            new Link(
+                name: 'related',
+                href: $href,
+            )
+        );
+    }
+
+    /**
     * @param ResourceObject $resource
     * @param {{ meta.projectName }}Dictionary|UnitEnum $type
     * @param int $id

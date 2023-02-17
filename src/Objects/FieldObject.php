@@ -27,6 +27,15 @@ class FieldObject implements MinimaliserObjectInterface
 
     /** @var bool  */
     private bool $isNullable;
+
+    /** @var bool  */
+    private bool $isForeignKey=false;
+
+    /** @var string|null  */
+    private ?string $foreignKeyField=null;
+
+    /** @var string|null  */
+    private ?string $foreignKeyTable=null;
     
     /** @var SqlFieldOption|null  */
     private ?SqlFieldOption $option=null;
@@ -44,6 +53,12 @@ class FieldObject implements MinimaliserObjectInterface
     )
     {
         $this->name = $field['Field'];
+
+        if (str_contains($this->name, '_')){
+            $this->isForeignKey = true;
+            $this->foreignKeyTable = substr($this->name, 0, strpos($this->name, '_'));
+            $this->foreignKeyField = substr($this->name, strpos($this->name, '_') + 1);
+        }
 
         $length = null;
         $fieldTypePart = explode('(', $field['Type']);
@@ -108,7 +123,17 @@ class FieldObject implements MinimaliserObjectInterface
         }
         $response->meta->add(name: 'capitalisedName', value: ucfirst($this->name));
         $response->meta->add(name: 'isId', value: $this->option === SqlFieldOption::AutoIncrement);
-        
+
+        if ($this->isForeignKey){
+            $metaForeignKey = [
+                'table' => $this->foreignKeyTable,
+                'field' => $this->foreignKeyField,
+                'fieldCapitalised' => ucfirst($this->foreignKeyField),
+            ];
+
+            $response->meta->add(name: 'FK', value: $metaForeignKey);
+        }
+
         if ($this->foreignKey !== null && $this->foreignKey->isComplete()){
             $response->meta->add(name: 'isForeignKey', value: true);
             $response->meta->add(name: 'tableName', value: $this->foreignKey->getName());
@@ -175,5 +200,17 @@ class FieldObject implements MinimaliserObjectInterface
     ): int|null
     {
         return $this->length;
+    }
+
+    public function isForeignKey(): bool {
+        return $this->isForeignKey;
+    }
+
+    public function getForeignKeyTable(): string|null {
+        return $this->foreignKeyTable;
+    }
+
+    public function getForeignKeyField(): string|null {
+        return $this->foreignKeyField;
     }
 }

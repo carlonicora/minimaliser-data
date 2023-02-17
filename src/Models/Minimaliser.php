@@ -6,7 +6,6 @@ use CarloNicora\Minimalism\Factories\MinimalismFactories;
 use CarloNicora\Minimalism\Interfaces\Sql\Interfaces\SqlInterface;
 use CarloNicora\Minimalism\MinimaliserData\Data;
 use CarloNicora\Minimalism\MinimaliserData\Factories\FileFactory;
-use CarloNicora\Minimalism\MinimaliserData\Factories\TestsFactory;
 use CarloNicora\Minimalism\MinimaliserData\Objects\DatabaseObject;
 use Exception;
 
@@ -139,9 +138,11 @@ class Minimaliser extends AbstractModel
                 tables: $database->getTables(),
             );
 
+            /*
             $this->writeTests(
                 tables: $database->getTables(),
             );
+            */
         } else {
             echo 'No databases specified in the .env file.';
         }
@@ -175,6 +176,7 @@ class Minimaliser extends AbstractModel
      * @return void
      * @throws Exception
      */
+    /*
     private function writeTests(
         array $tables,
     ): void
@@ -204,4 +206,5 @@ class Minimaliser extends AbstractModel
             }
         }
     }
+    */
 }

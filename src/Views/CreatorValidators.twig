@@ -34,9 +34,13 @@ class {{ data.attributes.objectName }}CreateValidator extends AbstractDataValida
 
         $resourceValidator = new ResourceValidator(type: '{{ data.attributes.objectName | lower }}');
 
-{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.meta.isId == false%}{% if field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt'%}
+{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.meta.isId == false and field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt'%}
+{% if field.meta.FK %}
+        $resourceValidator->addAttributeValidator(new AttributeValidator(name: '{{ field.meta.FK.field }}'{% if field.attributes.isNullable == false %}, isRequired: true{% endif %}));
+{% else %}
         $resourceValidator->addAttributeValidator(new AttributeValidator(name: '{{ field.attributes.name }}'{% if field.attributes.isNullable == false %}, isRequired: true{% endif %}{% if field.meta.isForeignKey is not defined %}{% if field.attributes.phpType == 'int' %},type: DataTypes::int{% elseif field.attributes.phpType == 'bool' %},type: DataTypes::bool{% endif%}{% endif %}));
-{% endif %}{% endif %}{% endfor %}
+{% endif %}
+{% endif %}{% endfor %}
 
         $this->documentValidator->addResourceValidator(
                 validator: $resourceValidator
@@ -51,15 +55,15 @@ class {{ data.attributes.objectName }}CreateValidator extends AbstractDataValida
     public function validateData(
     ): bool
     {
-{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.meta.isId == false%}{% if field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt'%}{% if field.meta.isForeignKey %}
+{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.meta.isId == false and field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt' and field.meta.FK %}
         $this->getDocument()->getSingleResource()->attributes->update(
-                name: '{{ field.attributes.name }}',
+                name: '{{ field.meta.FK.field }}',
                 value: $this->encrypter->decryptId(
-                        $this->getDocument()->getSingleResource()->attributes->get(name: '{{ field.attributes.name }}'),
+                        $this->getDocument()->getSingleResource()->attributes->get(name: '{{ field.meta.FK.field }}'),
                 ),
         );
 
-{% endif %}{% endif %}{% endif %}{% endfor %}
+{% endif %}{% endfor %}
         return true;
     }
 {% endif %}

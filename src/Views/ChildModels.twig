@@ -22,6 +22,7 @@
 namespace {{ data.attributes.namespace }}Models\{{ data.attributes.objectNamePlural }};
 
 use CarloNicora\Minimalism\Enums\HttpCode;
+use CarloNicora\Minimalism\Enums\HttpCache;
 use CarloNicora\Minimalism\Interfaces\Encrypter\Parameters\PositionedEncryptedParameter;
 use {{ data.attributes.namespace }}Models\Abstracts\Abstract{{ data.attributes.project }}Model;
 {% if parentTable != false %}
@@ -61,6 +62,12 @@ use Exception;
 
 class {{ childTable.attributes.objectNamePlural }} extends Abstract{{ data.attributes.project }}Model
 {
+    /** @var HttpCache  */
+    protected HttpCache $httpCache = HttpCache::Cache;
+
+    /** @var int  */
+    protected int $httpCacheExpiration = 60*60*24;
+
     /**
      * @param PositionedEncryptedParameter ${{ data.attributes.primaryKey }}
      * @param array|null $page

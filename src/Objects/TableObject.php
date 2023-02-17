@@ -7,6 +7,7 @@ use CarloNicora\Minimalism\Interfaces\Sql\Factories\SqlQueryFactory;
 use CarloNicora\Minimalism\Interfaces\Sql\Interfaces\SqlInterface;
 use CarloNicora\Minimalism\MinimaliserData\Data\TableDefinition\Databases\TableDefinitionTable;
 use CarloNicora\Minimalism\MinimaliserData\Data\Tables\Databases\TablesTable;
+use CarloNicora\Minimalism\MinimaliserData\Factories\Pluraliser;
 use CarloNicora\Minimalism\MinimaliserData\Interfaces\MinimaliserObjectInterface;
 use Exception;
 
@@ -19,13 +20,13 @@ class TableObject implements MinimaliserObjectInterface
     private ?FieldObject $primaryKey=null;
 
     /** @var string  */
-    private string $tableName='';
+    private string $tableName;
 
     /** @var string  */
-    private string $objectName='';
+    private string $objectName;
 
     /** @var string  */
-    private string $objectNamePlural='';
+    private string $objectNamePlural;
 
     /** @var bool  */
     private bool $isComplete=true;
@@ -55,7 +56,8 @@ class TableObject implements MinimaliserObjectInterface
             $this->name = substr($this->name, 1);
         }
 
-        $this->pluralize(ucfirst($this->name), $this->objectName, $this->objectNamePlural);
+        $this->objectName = Pluraliser::singular(ucfirst($this->name));
+        $this->objectNamePlural = Pluraliser::plural(ucfirst($this->name));
 
         do {
             $factory = SqlQueryFactory::create(
@@ -171,36 +173,6 @@ class TableObject implements MinimaliserObjectInterface
     }
 
     /**
-     * @param string $original
-     * @param string $singular
-     * @param string $plural
-     * @return void
-     */
-    private function pluralize(
-        string $original,
-        string &$singular,
-        string &$plural,
-    ): void
-    {
-        if (strtolower(substr($original, strlen($original)-3)) === 'ies') {
-            $singular = substr($original, 0, -3) . 'y';
-            $plural = $original;
-        } elseif (strtolower(substr($original, strlen($original)-4)) === 'sses') {
-            $singular = substr($original, 0, -2);
-            $plural = $original;
-        } elseif (strtolower(substr($original, strlen($original)-3)) === 'ses') {
-            $singular = substr($original, 0, -1);
-            $plural = $original;
-        } elseif (strtolower(substr($original, strlen($original)-1)) === 's') {
-            $singular = substr($original, 0, -1);
-            $plural = $original;
-        } else {
-            $singular = $original;
-            $plural = $original . 's';
-        }
-    }
-
-    /**
      * @return string
      */
     public function getName(
@@ -254,6 +226,7 @@ class TableObject implements MinimaliserObjectInterface
         $response->attributes->add(name: 'namespace', value: $this->namespace);
         $response->attributes->add(name: 'databaseIdentifier', value: $this->databaseIdentifier);
         $response->attributes->add(name: 'tableName', value: $this->tableName);
+        $response->attributes->add(name: 'objectNameLowercase', value: strtolower($this->objectName));
         $response->attributes->add(name: 'objectName', value: $this->objectName);
         $response->attributes->add(name: 'objectNamePlural', value: $this->objectNamePlural);
         $response->attributes->add(name: 'isComplete', value: $this->isComplete);

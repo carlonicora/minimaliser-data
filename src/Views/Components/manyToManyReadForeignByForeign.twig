@@ -1,0 +1,31 @@
+
+    /**
+     * @param int ${{ foreignLeft.field }}
+     * @param array|null $page
+     * @return array
+     * @throws Exception
+     */
+    public function read{{ foreignRight.fieldCapitalised }}sBy{{ foreignLeft.fieldCapitalised }}(
+        int ${{ foreignLeft.field }},
+        ?array $page=null,
+    ): array {
+        $factory = SqlQueryFactory::create({{ tableName }}Table::class)
+            ->addParameter({{ tableName }}Table::{{ foreignLeft.table }}_{{ foreignLeft.field }}, ${{ foreignLeft.field }});
+
+        $this->addPagination($factory, $page, {{ tableName }}Table::{{ primaryKey }});
+
+        $response = [];
+
+        /** @var {{ objectName }}[] $recordset */
+        $recordset = $this->data->read(
+            queryFactory: $factory,
+            responseType: {{ objectName }}::class,
+            requireObjectsList: true,
+        );
+
+        foreach ($recordset as $record){
+            $response[] = $record->get{{ foreignRight.fieldCapitalised }}();
+        }
+
+        return $response;
+    }

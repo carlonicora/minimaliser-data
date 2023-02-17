@@ -2,6 +2,7 @@
 namespace {{ data.attributes.namespace }}Models;
 
 use CarloNicora\Minimalism\Enums\HttpCode;
+use CarloNicora\Minimalism\Enums\HttpCache;
 use CarloNicora\Minimalism\Exceptions\MinimalismException;
 use CarloNicora\Minimalism\Interfaces\Encrypter\Parameters\PositionedEncryptedParameter;
 use CarloNicora\Minimalism\Services\ResourceBuilder\Interfaces\ResourceableDataInterface;
@@ -16,6 +17,12 @@ use Exception;
 
 class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.project }}Model
 {
+    /** @var HttpCache  */
+    protected HttpCache $httpCache = HttpCache::Cache;
+
+    /** @var int  */
+    protected int $httpCacheExpiration = 60*60*24;
+
     /**
      * @param PositionedEncryptedParameter|null $id
      * @param array|null $page

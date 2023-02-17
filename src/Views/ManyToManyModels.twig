@@ -1,0 +1,52 @@
+<?php
+namespace {{ data.attributes.namespace }}Models\{{ data.meta.source.tableCapitalised }};
+
+use CarloNicora\Minimalism\Enums\HttpCode;
+use CarloNicora\Minimalism\Enums\HttpCache;
+use CarloNicora\JsonApi\Objects\Link;
+use CarloNicora\JsonApi\Objects\ResourceObject;
+use CarloNicora\Minimalism\Interfaces\Encrypter\Parameters\PositionedEncryptedParameter;
+use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\{{ data.attributes.objectName }}IO;
+use {{ data.attributes.namespace }}Models\Abstracts\Abstract{{ data.attributes.project }}Model;
+use Exception;
+
+class {{ data.meta.destination.tableCapitalised }} extends Abstract{{ data.attributes.project }}Model
+{
+    /** @var HttpCache  */
+    protected HttpCache $httpCache = HttpCache::Cache;
+
+    /** @var int  */
+    protected int $httpCacheExpiration = 60*60*24;
+
+    /**
+     * @param PositionedEncryptedParameter ${{ data.meta.source.field }}
+     * @param array|null $page
+     * @return HttpCode
+     * @throws Exception
+     */
+    public function get(
+        PositionedEncryptedParameter ${{ data.meta.source.field }},
+        ?array $page=null,
+    ): HttpCode
+    {
+        ${{ data.meta.destination.field }}s = $this->objectFactory->create({{ data.attributes.objectName }}IO::class)->read{{ data.meta.destination.fieldCapitalised }}sBy{{ data.meta.source.fieldCapitalised }}(
+            {{ data.meta.source.field }}: ${{ data.meta.source.field }}->getValue(),
+            page: $page,
+        );
+
+        foreach (${{ data.meta.destination.field }}s as ${{ data.meta.destination.field }}){
+            $resource = new ResourceObject('{{ data.meta.destination.table }}', $this->encrypter->encryptId(${{ data.meta.destination.field }}));
+            $resource->links->add(
+                new Link(
+                    name: "related",
+                    href: $this->path->getUrl() . '{{ data.meta.destination.table }}/' . $this->encrypter->encryptId(${{ data.meta.destination.field }})
+                )
+            );
+            $this->document->addResource($resource);
+        }
+
+        $this->addPagination($page);
+
+        return HttpCode::Ok;
+    }
+}

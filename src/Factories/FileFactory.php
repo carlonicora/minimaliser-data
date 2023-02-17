@@ -54,46 +54,116 @@ class FileFactory
         self::createObjectFile(type: Generator::AbstractIO, table: $table);
         self::createObjectFile(type: Generator::IO, table: $table);
 
-        if (!$table->isManyToMany() && $table->isComplete()) {
-            self::createObjectFile(type: Generator::AbstractBuilders,table: $table);
-            self::createObjectFile(type: Generator::Builders,table: $table);
-            self::createObjectFile(type: Generator::UpdaterValidators, table: $table);
-            self::createObjectFile(type: Generator::CreatorValidators, table: $table);
-            self::createObjectFile(type: Generator::Models, table: $table);
-            self::createObjectFile(type: Generator::AbstractCaches, table: $table);
-            self::createObjectFile(type: Generator::Caches, table: $table);
+        if ($table->isComplete()) {
+            if ($table->isManyToMany()) {
+                $foreignKeys = [];
+                foreach ($table->getFields() as $field){
+                    if ($field->isForeignKey()){
+                        $foreignKeys[] = [
+                            'table' => $field->getForeignKeyTable(),
+                            'tableCapitalised' => ucfirst($field->getForeignKeyTable()),
+                            'field' => $field->getForeignKeyField(),
+                            'fieldCapitalised' => ucfirst($field->getForeignKeyField()),
+                        ];
+                    }
+                }
 
-            foreach ($table->getChildren() ?? [] as $foreignKey){
-                if (!$foreignKey->getTable()->isManyToMany()) {
-                    self::createObjectFile(type: Generator::ChildModels, table: $table, childTable: $foreignKey->getTable());
+                if (count($foreignKeys) === 2){
+                    self::createManyToManyModel($table, $foreignKeys[0], $foreignKeys[1]);
+                    self::createManyToManyModel($table, $foreignKeys[1], $foreignKeys[0]);
+                }
+            }else {
+                self::createObjectFile(type: Generator::AbstractBuilders, table: $table);
+                self::createObjectFile(type: Generator::Builders, table: $table);
+                self::createObjectFile(type: Generator::UpdaterValidators, table: $table);
+                self::createObjectFile(type: Generator::CreatorValidators, table: $table);
+                self::createObjectFile(type: Generator::Models, table: $table);
+                self::createObjectFile(type: Generator::AbstractCaches, table: $table);
+                self::createObjectFile(type: Generator::Caches, table: $table);
+
+                foreach ($table->getFields() ?? [] as $field){
+                    if ($field->isForeignKey()){
+                        $document = new Document();
+                        $resource = $table->generateResourceObject();
+                        $resource->meta->add('parent', [
+                            'tableSingular' => Pluraliser::singular($field->getForeignKeyTable()),
+                            'tablePlural' => Pluraliser::plural($field->getForeignKeyTable()),
+                            'tableSingularCapitalised' => ucfirst(Pluraliser::singular($field->getForeignKeyTable())),
+                            'tablePluralCapitalised' => ucfirst(Pluraliser::plural($field->getForeignKeyTable())),
+                            'field' => $field->getForeignKeyField(),
+                            'fieldCapitalised' => ucfirst($field->getForeignKeyField()),
+                        ]);
+                        $document->addResource($resource);
+
+                        $directory = self::$sourceDirectory . 'Models' . DIRECTORY_SEPARATOR . ucfirst(Pluraliser::plural($field->getForeignKeyTable()));
+                        $fileName = $directory . DIRECTORY_SEPARATOR . ucfirst($table->getObjectNamePlural());
+                        $fileName .= '.php';
+
+                        if (!is_dir($directory)){
+                            mkdir($directory);
+                        }
+
+                        $file = self::$twig->transform(
+                            document: $document,
+                            viewFile: 'ChildModelExistingTable',
+                        );
+                        file_put_contents($fileName, $file);
+                    }
                 }
             }
         }
     }
 
     /**
+     * @param TableObject $table
+     * @param array $source
+     * @param array $destination
+     * @return void
+     * @throws Exception
+     */
+    private static function createManyToManyModel(
+        TableObject $table,
+        array $source,
+        array $destination,
+    ): void {
+        $directory = self::$sourceDirectory . 'Models' . DIRECTORY_SEPARATOR . ucfirst($source['table']);
+        $fileName = $directory . DIRECTORY_SEPARATOR . ucfirst($destination['table']);
+        $fileName .= '.php';
+
+        if (!is_dir($directory)){
+            mkdir($directory);
+        }
+
+        $document = new Document();
+        $resource = $table->generateResourceObject();
+        $resource->meta->add('source', $source);
+        $resource->meta->add('destination', $destination);
+        $document->addResource($resource);
+
+        $file = self::$twig->transform(
+            document: $document,
+            viewFile: 'ManyToManyModels',
+        );
+        file_put_contents($fileName, $file);
+    }
+
+    /**
      * @param Generator $type
      * @param TableObject $table
-     * @param TableObject|null $childTable
      * @return void
      * @throws Exception
      */
     private static function createObjectFile(
         Generator $type,
         TableObject $table,
-        ?TableObject $childTable=null,
     ): void
     {
         $folderName = self::$sourceDirectory . $type->getDataSubfolder(table: $table);
-        if (!file_exists($folderName)){
+        if (!is_dir($folderName)){
             mkdir(directory: $folderName, recursive: true);
         }
 
-        if ($childTable === null) {
-            $fileName = $folderName . $type->getFileName(table: $table);
-        } else {
-            $fileName = $folderName . $type->getFileName(table: $childTable);
-        }
+        $fileName = $folderName . $type->getFileName(table: $table);
 
         if (!$type->overrides() && file_exists($fileName)){
             return;
@@ -102,9 +172,6 @@ class FileFactory
         $document = new Document();
 
         $tableResource = $table->generateResourceObject();
-        if ($childTable !== null){
-            $tableResource->meta->add(name: 'childTable', value: $childTable->getName());
-        }
         $document->addResource($tableResource);
 
         $file = self::$twig->transform(
@@ -112,11 +179,7 @@ class FileFactory
             viewFile: $type->name,
         );
 
-        if ($childTable === null) {
-            file_put_contents($folderName . $type->getFileName(table: $table), $file);
-        } else {
-            file_put_contents($folderName . $type->getFileName(table: $childTable), $file);
-        }
+        file_put_contents($folderName . $type->getFileName(table: $table), $file);
     }
 
     /**
@@ -142,22 +205,22 @@ class FileFactory
         }
 
         $enumDirectory = self::$sourceDirectory . 'Enums';
-        if (!file_exists($enumDirectory)){
+        if (!is_dir($enumDirectory)){
             mkdir($enumDirectory);
         }
 
         $modelsDirectory = self::$sourceDirectory . 'Models';
-        if (!file_exists($modelsDirectory)){
+        if (!is_dir($modelsDirectory)){
             mkdir($modelsDirectory);
         }
 
         $modelsDirectory .= DIRECTORY_SEPARATOR . 'Abstracts';
-        if (!file_exists($modelsDirectory)){
+        if (!is_dir($modelsDirectory)){
             mkdir($modelsDirectory);
         }
 
         $abstractDirectory = self::$dataDirectory . 'Abstracts';
-        if (!file_exists($abstractDirectory)){
+        if (!is_dir($abstractDirectory)){
             mkdir($abstractDirectory);
         }
 
