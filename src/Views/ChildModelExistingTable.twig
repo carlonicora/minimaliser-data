@@ -38,7 +38,7 @@ class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.
             $resource = new ResourceObject('{{ data.attributes.tableName }}', $this->encrypter->encryptId(${{ data.attributes.objectNameLowercase }}->getId()));
             $resource->links->add(
                 new Link(
-                    name: "related",
+                    name: "self",
                     href: $this->path->getUrl() . '{{ data.attributes.tableName }}/' . $this->encrypter->encryptId(${{ data.attributes.objectNameLowercase }}->getId())
                 )
             );

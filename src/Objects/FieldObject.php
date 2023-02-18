@@ -5,6 +5,7 @@ use CarloNicora\JsonApi\Objects\ResourceObject;
 use CarloNicora\Minimalism\Interfaces\Sql\Enums\SqlFieldOption;
 use CarloNicora\Minimalism\Interfaces\Sql\Enums\SqlFieldType;
 use CarloNicora\Minimalism\MinimaliserData\Enums\MySqlFieldType;
+use CarloNicora\Minimalism\MinimaliserData\Factories\Pluraliser;
 use CarloNicora\Minimalism\MinimaliserData\Interfaces\MinimaliserObjectInterface;
 use Exception;
 
@@ -127,6 +128,7 @@ class FieldObject implements MinimaliserObjectInterface
         if ($this->isForeignKey){
             $metaForeignKey = [
                 'table' => $this->foreignKeyTable,
+                'tableSingular' => Pluraliser::singular($this->foreignKeyTable),
                 'field' => $this->foreignKeyField,
                 'fieldCapitalised' => ucfirst($this->foreignKeyField),
             ];

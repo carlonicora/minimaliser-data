@@ -72,6 +72,7 @@ abstract class Abstract{{ meta.projectName }}ResourceBuilder extends AbstractRes
         ResourceObject $resource,
         string $type,
         ?int $id,
+        string|null $relationshipName = null,
     ): void
     {
         if ($id !== null) {
@@ -82,7 +83,7 @@ abstract class Abstract{{ meta.projectName }}ResourceBuilder extends AbstractRes
                 . '/' . strtolower($type) . '/';
         }
 
-        $resource->relationship($type)->links->add(
+        $resource->relationship($relationshipName ?? $type)->links->add(
             new Link(
                 name: 'related',
                 href: $href,
@@ -92,26 +93,49 @@ abstract class Abstract{{ meta.projectName }}ResourceBuilder extends AbstractRes
 
     /**
     * @param ResourceObject $resource
-    * @param {{ meta.projectName }}Dictionary|UnitEnum $type
+    * @param {{ meta.projectName }}Dictionary|UnitEnum|string $type
     * @param int $id
-    * @param {{ meta.projectName }}Dictionary|UnitEnum|null $childType
+    * @param {{ meta.projectName }}Dictionary|UnitEnum|string|null $childType
     * @return void
     * @throws Exception
     */
     protected function addRelationshipRelatedLink(
         ResourceObject $resource,
-        {{ meta.projectName }}Dictionary|UnitEnum $type,
+        LinkneticCoursesDictionary|UnitEnum|string $type,
         int $id,
-        {{ meta.projectName }}Dictionary|UnitEnum|null $childType=null,
+        LinkneticCoursesDictionary|UnitEnum|string|null $childType=null,
+        string|null $relationshipName=null,
     ): void
     {
-        $resource->relationship($childType !== null ? $childType->getPlural() : $type->value)->links->add(
+        $childEndpoint = '';
+        if ($childType !== null){
+            $childEndpoint = '/';
+            if (is_string($childType)){
+                $relationshipName = $relationshipName ?? $childType;
+                $childEndpoint .= $childType;
+            } else {
+                $relationshipName = $relationshipName ?? $childType->getPlural();
+                $childEndpoint .= $childType->getEndpoint();
+            }
+        } elseif (is_string($type)){
+            $relationshipName = $relationshipName ?? $type;
+        } else {
+            $relationshipName = $relationshipName ?? $type->value;
+        }
+
+        if (is_string($type)){
+            $typeEndpoint = $type;
+        } else {
+            $typeEndpoint = $type->getEndpoint();
+        }
+
+        $resource->relationship($relationshipName)->links->add(
             new Link(
                 name: 'related',
                 href: $this->path->getUrl()
-                    . $type->getEndpoint()
+                    . $typeEndpoint
                     . '/' . $this->encrypter->encryptId($id)
-                    . ($childType !== null ? '/' . $childType->getEndpoint() : '')
+                    . $childEndpoint
             )
         );
     }

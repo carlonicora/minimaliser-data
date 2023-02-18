@@ -63,9 +63,21 @@ abstract class Abstract{{ data.attributes.objectName }}Builder extends Abstract{
             resource: $response,
             type: '{{ field.meta.FK.table }}',
             id: $data->get{{ field.meta.FK.fieldCapitalised }}(),
+            relationshipName: '{{ field.meta.FK.tableSingular }}',
         );
 {% endif %}
 {% endfor %}
+{% if data.meta.externalFkTables %}
+{% for tableIdentifier in data.meta.externalFkTables %}
+
+        $this->addRelationshipRelatedLink(
+            resource: $response,
+            type: {{ data.attributes.project }}Dictionary::{{ data.attributes.objectName }},
+            id: $data->getId(),
+            childType: '{{ tableIdentifier.name }}',
+        );
+{% endfor %}
+{% endif %}
 
         return $response;
     }

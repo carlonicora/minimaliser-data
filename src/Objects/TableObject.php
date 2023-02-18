@@ -34,6 +34,9 @@ class TableObject implements MinimaliserObjectInterface
     /** @var FieldObject[]  */
     private array $children=[];
 
+    /** @var array */
+    private array $externalForeignKeyTables=[];
+
     /**
      * @param SqlInterface $data
      * @param string $projectName
@@ -167,7 +170,7 @@ class TableObject implements MinimaliserObjectInterface
             }
         }
 
-        if (!$hasFields){
+        if (!$hasFields && !$this->isManyToMany()){
             $this->isComplete = false;
         }
     }
@@ -231,6 +234,10 @@ class TableObject implements MinimaliserObjectInterface
         $response->attributes->add(name: 'objectNamePlural', value: $this->objectNamePlural);
         $response->attributes->add(name: 'isComplete', value: $this->isComplete);
         $response->attributes->add(name: 'isManyToMany', value: $this->name !== $this->tableName);
+
+        if ($this->externalForeignKeyTables !== []){
+            $response->meta->add('externalFkTables', $this->externalForeignKeyTables);
+        }
 
         foreach ($this->fields as $field) {
             if ($field->isPrimaryKey()) {
@@ -354,5 +361,31 @@ class TableObject implements MinimaliserObjectInterface
 
     public function isManyToMany(): bool {
         return $this->name !== $this->tableName;
+    }
+
+    /**
+     * @param array $foreignKeyTable
+     * @return void
+     */
+    public function addExternalForeignKeyTable(
+        array $foreignKeyTable,
+    ): void {
+        $this->externalForeignKeyTables[] = $foreignKeyTable;
+    }
+
+    /**
+     * @param FieldObject $startField
+     * @return string|null
+     */
+    public function getRelatedManyToManyTable(
+        FieldObject $startField,
+    ): string|null {
+        foreach ($this->fields as $field){
+            if ($field->isForeignKey() && $field->getName() !== $startField->getName()){
+                return $field->getForeignKeyTable();
+            }
+        }
+
+        return null;
     }
 }

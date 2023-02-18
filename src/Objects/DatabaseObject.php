@@ -5,6 +5,7 @@ use CarloNicora\Minimalism\Exceptions\MinimalismException;
 use CarloNicora\Minimalism\Interfaces\Sql\Factories\SqlQueryFactory;
 use CarloNicora\Minimalism\Interfaces\Sql\Interfaces\SqlInterface;
 use CarloNicora\Minimalism\MinimaliserData\Data\Tables\Databases\TablesTable;
+use CarloNicora\Minimalism\MinimaliserData\Factories\Pluraliser;
 
 class DatabaseObject
 {
@@ -52,6 +53,39 @@ class DatabaseObject
                 databaseIdentifier: $identifier,
             );
         }
+
+        foreach ($this->tables as $table){
+            foreach ($table->getFields() as $field) {
+                if ($field->isForeignKey()) {
+                    if ($table->isManyToMany()) {
+                        $name = $table->getRelatedManyToManyTable($field);
+                        if ($name !== null) {
+                            $this->getTable($field->getForeignKeyTable())?->addExternalForeignKeyTable([
+                                'name' => $name,
+                                'relationshipName' => $name
+                            ]);
+                        }
+                    } else {
+                        $this->getTable($field->getForeignKeyTable())?->addExternalForeignKeyTable([
+                            'name' => $table->getName(),
+                            'relationshipName' => Pluraliser::singular($table->getName()),
+                        ]);
+                    }
+                }
+            }
+        }
+    }
+
+    private function getTable(
+        string $name,
+    ): TableObject|null {
+        foreach ($this->tables as $table) {
+            if (strtolower($table->getName()) === strtolower($name)){
+                return $table;
+            }
+        }
+
+        return null;
     }
 
     /**

@@ -38,7 +38,7 @@ class {{ data.meta.destination.tableCapitalised }} extends Abstract{{ data.attri
             $resource = new ResourceObject('{{ data.meta.destination.table }}', $this->encrypter->encryptId(${{ data.meta.destination.field }}));
             $resource->links->add(
                 new Link(
-                    name: "related",
+                    name: "self",
                     href: $this->path->getUrl() . '{{ data.meta.destination.table }}/' . $this->encrypter->encryptId(${{ data.meta.destination.field }})
                 )
             );
