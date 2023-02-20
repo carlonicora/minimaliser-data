@@ -2,6 +2,7 @@
 namespace CarloNicora\Minimalism\MinimaliserData\Factories;
 
 use CarloNicora\JsonApi\Document;
+use CarloNicora\JsonApi\Objects\ResourceObject;
 use CarloNicora\Minimalism\MinimaliserData\Objects\TableObject;
 use CarloNicora\Minimalism\Services\Twig\Twig;
 use Exception;
@@ -82,10 +83,34 @@ class TestsFactory
 
         file_put_contents(self::$testsDirectory . 'Data' . DIRECTORY_SEPARATOR . 'Oauth' . DIRECTORY_SEPARATOR . 'TokensData.php', $file, LOCK_EX);
 
+        $externalTables = [];
+        foreach ($tables as $table){
+            foreach($table->getExternalForeignKeyTable() as $externalForeignKeyTable){
+                if ($externalTables[$externalForeignKeyTable['name']] === null && !self::tableExists($externalForeignKeyTable['name'], $tables)){
+                    $externalTables[$externalForeignKeyTable['name']] = $externalForeignKeyTable['name'];
+                }
+            }
+            foreach ($table->getFields() as $field){
+                if ($field->isForeignKey() && $externalTables[$field->getForeignKeyTable()] === null && !self::tableExists($field->getForeignKeyTable(), $tables)) {
+                    $externalTables[$field->getForeignKeyTable()] = $field->getForeignKeyTable();
+                }
+            }
+        }
 
+        foreach ($externalTables as $externalTable){
+            $singleDocument = clone($document);
+            $singleDocument->addResource(new ResourceObject(type: ucfirst(Pluraliser::singular($externalTable)), id: Pluraliser::singular($externalTable)));
+
+            $file = self::$twig->transform(
+                document: $singleDocument,
+                viewFile: 'Tests/Validators/ExternalTableValidator',
+            );
+
+            file_put_contents(self::$testsDirectory . 'Validators' . DIRECTORY_SEPARATOR . ucfirst(Pluraliser::singular($externalTable)) . 'Validator.php', $file, LOCK_EX);
+        }
 
         foreach ($tables as $table){
-            if ($table->isComplete()) {
+            if (!$table->isManyToMany() && $table->isComplete()) {
                 $singleDocument = clone($document);
                 $singleDocument->addResource($table->generateResourceObject());
 
@@ -111,6 +136,24 @@ class TestsFactory
         );
 
         file_put_contents(self::$testsDirectory . 'Abstracts' . DIRECTORY_SEPARATOR . 'AbstractValidator.php', $file, LOCK_EX);
+    }
+
+    /**
+     * @param string $tableName
+     * @param TableObject[] $tables
+     * @return bool
+     */
+    private static function tableExists(
+        string $tableName,
+        array $tables,
+    ): bool {
+        foreach ($tables as $table){
+            if ($table->getName() === $tableName) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -178,27 +221,38 @@ class TestsFactory
 
         file_put_contents(self::$testsDirectory . 'Functional' . DIRECTORY_SEPARATOR . $table->getObjectNamePlural() . DIRECTORY_SEPARATOR . $table->getObjectNamePlural() .  '.php', $file, LOCK_EX);
 
-        foreach ($table->getChildren() ?? [] as $childTable) {
-            mkdir(self::$testsDirectory . 'Functional' . DIRECTORY_SEPARATOR . $table->getObjectNamePlural() . DIRECTORY_SEPARATOR . $childTable->getTable()->getObjectNamePlural());
+        if ($table->getExternalForeignKeyTable() !== []){
+            foreach ($table->getExternalForeignKeyTable() as $externalForeignKeyTable){
+                $folder = self::$testsDirectory . 'Functional' . DIRECTORY_SEPARATOR .
+                    $table->getObjectNamePlural() . DIRECTORY_SEPARATOR .
+                    ucfirst($externalForeignKeyTable['name']);
 
-            $childDocument = clone($document);
-            $childDocument->resources[0]->meta->add(name: 'childTable', value: $childTable->getTable()->getName());
-            if ($childDocument->meta->has(name: 'isComplete')){
-                $childDocument->meta->remove(name: 'isComplete');
+                if(!is_dir($folder)){
+                    mkdir($folder);
+                }
+
+                $fileName = $folder . DIRECTORY_SEPARATOR . ucfirst($externalForeignKeyTable['name']) . '.php';
+
+                $document = new Document();
+                $document->meta->add(name: 'namespace', value: $namespace);
+                $document->meta->add(name: 'projectName', value: $projectName);
+                $document->meta->add(name: 'database', value: $databaseName);
+                $resource = $table->generateResourceObject();
+                $resource->meta->add('parent', [
+                    'singular' => Pluraliser::singular($externalForeignKeyTable['relationshipName']),
+                    'plural' => $externalForeignKeyTable['name'],
+                    'singularCapitalised' => Pluraliser::singular(ucfirst($externalForeignKeyTable['relationshipName'])),
+                    'pluralCapitalised' => ucfirst($externalForeignKeyTable['name']),
+                ]);
+                $document->addResource($resource);
+
+                $file = self::$twig->transform(
+                    document: $document,
+                    viewFile: 'Tests/Functional/FunctionalManyToManyTest',
+                );
+
+                file_put_contents($fileName, $file, LOCK_EX);
             }
-            $childDocument->meta->add(name: 'isComplete', value: $childTable->getTable()->isComplete());
-
-            $file = self::$twig->transform(
-                document: $document,
-                viewFile: 'Tests/Functional/FunctionalChildTest',
-            );
-
-            file_put_contents(self::$testsDirectory . 'Functional' . DIRECTORY_SEPARATOR .
-                $table->getObjectNamePlural() . DIRECTORY_SEPARATOR .
-                $childTable->getTable()->getObjectNamePlural() . DIRECTORY_SEPARATOR .
-                $childTable->getTable()->getObjectNamePlural() .  '.php', $file, LOCK_EX);
-
-            $childDocument->resources[0]->meta->remove(name: 'childTable');
         }
     }
 }

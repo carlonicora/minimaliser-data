@@ -1,0 +1,30 @@
+<?php
+namespace {{ meta.namespace }}Tests\Functional\{{ data.attributes.objectNamePlural }}\{{ data.meta.parent.pluralCapitalised }};
+
+use CarloNicora\Minimalism\Enums\HttpCode;
+use Exception;
+use {{ meta.namespace }}Tests\Abstracts\AbstractFunctionalTest;
+use {{ meta.namespace }}Tests\Data\{{ data.attributes.databaseIdentifier }}\{{ data.attributes.objectNamePlural }}Data;
+use {{ meta.namespace }}Tests\Validators\{{ data.meta.parent.singularCapitalised }}Validator;
+
+class {{ data.meta.parent.pluralCapitalised }} extends AbstractFunctionalTest
+{
+    /**
+     * @test
+     * return void
+     * @throws Exception
+     * @covers \{{ meta.namespace }}Models\{{ data.attributes.objectNamePlural }}\{{ data.meta.parent.pluralCapitalised }}::get()
+     */
+    public function SHOULD_Return{{ data.meta.parent.pluralCapitalised }}_WHEN_UserRequests{{ data.meta.parent.singularCapitalised }}{{ data.attributes.objectNamePlural }}(
+    ): void
+    {
+        $response = $this->runApiCall(
+            expectedResult: HttpCode::Ok,
+            endpointParams: [{{ data.attributes.objectNamePlural }}Data::Value1->value]
+        );
+
+        foreach ($response->getResources() as $resource) {
+            {{ data.meta.parent.singularCapitalised }}Validator::validateListOnly($resource);
+        }
+    }
+}

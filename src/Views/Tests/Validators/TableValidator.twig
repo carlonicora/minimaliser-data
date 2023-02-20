@@ -21,18 +21,38 @@ class {{ data.attributes.objectName }}Validator extends AbstractValidator
 
         self::validateResourceElement(ResourceElements::Meta, ${{ data.attributes.objectName | lower }}, ['createdAt','updatedAt']);
         self::validateResourceElement(ResourceElements::Attribute, ${{ data.attributes.objectName | lower }}, [
-{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{%if field.meta.isId == false%}{% if field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt'%}
+{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}
+{%if field.meta.isId == false and field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt'%}
+{% if field.meta.FK == null %}
             '{{ field.attributes.name }}',
-{% endif %}{% endif %}{% endfor %}
+{% endif %}
+{% endif %}
+{% endfor %}
         ]);
         self::validateResourceElement(ResourceElements::Link, ${{ data.attributes.objectName | lower }}, ['self']);
         self::validateResourceElement(ResourceElements::Relationship, ${{ data.attributes.objectName | lower }}, [
-{% if data.relationships['parents'] %}{% for parentTableIdentifier in data.relationships['parents'].data %}{% set parentTable = lookupIncluded('table', parentTableIdentifier.id, included) %}
-            '{{ parentTable.attributes.objectName | lower }}',
-{% endfor %}{% endif %}
-{% if data.relationships['children'] %}{% for childTableIdentifier in data.relationships['children'].data %}{% set childTable = lookupIncluded('table', childTableIdentifier.id, included) %}
-            '{{ childTable.attributes.objectNamePlural | lower }}',
-{% endfor %}{% endif %}
+{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}
+{% if field.meta.FK %}
+            '{{ field.meta.FK.tableSingular }}',
+{% endif %}
+{% endfor %}
+{% for externalFkTable in data.meta.externalFkTables %}
+            '{{ externalFkTable.name }}',
+{% endfor %}
         ]);
+    }
+
+    /**
+     * @param ResourceObject ${{ data.attributes.objectName | lower }}
+     * @return void
+     */
+    public static function validateListOnly(
+        ResourceObject ${{ data.attributes.objectName | lower }},
+    ): void
+    {
+        self::assertEquals(expected: {{ meta.projectName }}Dictionary::{{ data.attributes.objectName }}->value, actual: ${{ data.attributes.objectName | lower }}->type);
+        self::assertNotNull(actual: ${{ data.attributes.objectName | lower }}->id);
+        self::validateResourceElement(ResourceElements::Link, ${{ data.attributes.objectName | lower }}, ['self']);
+        self::assertEquals(expected: 0, actual: ${{ data.attributes.objectName | lower }}->attributes->count());
     }
 }

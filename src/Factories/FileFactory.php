@@ -61,6 +61,7 @@ class FileFactory
                     if ($field->isForeignKey()){
                         $foreignKeys[] = [
                             'table' => $field->getForeignKeyTable(),
+                            'tableSingular' => Pluraliser::singular($field->getForeignKeyTable()),
                             'tableCapitalised' => ucfirst($field->getForeignKeyTable()),
                             'field' => $field->getForeignKeyField(),
                             'fieldCapitalised' => ucfirst($field->getForeignKeyField()),

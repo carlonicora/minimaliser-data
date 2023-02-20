@@ -35,11 +35,11 @@ class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.
         );
 
         foreach (${{ data.attributes.tableName }} as ${{ data.attributes.objectNameLowercase }}){
-            $resource = new ResourceObject('{{ data.attributes.tableName }}', $this->encrypter->encryptId(${{ data.attributes.objectNameLowercase }}->getId()));
+            $resource = new ResourceObject('{{ data.attributes.tableNameSingular|lower }}', $this->encrypter->encryptId(${{ data.attributes.objectNameLowercase }}->getId()));
             $resource->links->add(
                 new Link(
                     name: "self",
-                    href: $this->path->getUrl() . '{{ data.attributes.tableName }}/' . $this->encrypter->encryptId(${{ data.attributes.objectNameLowercase }}->getId())
+                    href: $this->path->getUrl() . '{{ data.attributes.tableName|lower }}/' . $this->encrypter->encryptId(${{ data.attributes.objectNameLowercase }}->getId())
                 )
             );
             $this->document->addResource($resource);

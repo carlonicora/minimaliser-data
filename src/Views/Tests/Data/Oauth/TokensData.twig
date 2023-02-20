@@ -2,7 +2,6 @@
 namespace {{ meta.namespace }}Tests\Data\Oauth;
 
 use CarloNicora\Minimalism\Interfaces\Sql\Interfaces\SqlDataObjectInterface;
-use {{ meta.namespace }}Tests\Data\{{ meta.database }}\UsersData;
 use CarloNicora\Minimalism\Services\OAuth\Data\Tokens\Databases\TokensTable;
 use CarloNicora\Minimalism\Services\OAuth\Data\Tokens\DataObjects\Token;
 use CarloNicora\Minimalism\TestSuite\Interfaces\TableDataInterface;
@@ -28,22 +27,22 @@ enum TokensData: string implements TableDataInterface
     ): SqlDataObjectInterface
     {
         return match ($this) {
-            self::DefaultToken => $this->map(user: UsersData::Value1),
-            self::OtherToken => $this->map(user: UsersData::Value2),
+            self::DefaultToken => $this->map(userId: 1),
+            self::OtherToken => $this->map(userId: 2),
         };
     }
 
     /**
-    * @param UsersData $user
+    * @param int $userId
     * @return Token
     */
     private function map(
-        UsersData $user,
+        int $userId,
     ): Token
     {
         $response = new Token();
         $response->setToken($this->value);
-        $response->setUserId($user->value);
+        $response->setUserId($userId);
         $response->setAppId(AppsData::App1->value);
         $response->setIsUser(true);
 

@@ -65,6 +65,7 @@ abstract class Abstract{{ meta.projectName }}ResourceBuilder extends AbstractRes
      * @param ResourceObject $resource
      * @param string $type
      * @param int|null $id
+     * @param string|null $relationshipName
      * @return void
      * @throws Exception
      */
@@ -92,13 +93,14 @@ abstract class Abstract{{ meta.projectName }}ResourceBuilder extends AbstractRes
     }
 
     /**
-    * @param ResourceObject $resource
-    * @param {{ meta.projectName }}Dictionary|UnitEnum|string $type
-    * @param int $id
-    * @param {{ meta.projectName }}Dictionary|UnitEnum|string|null $childType
-    * @return void
-    * @throws Exception
-    */
+     * @param ResourceObject $resource
+     * @param {{ meta.projectName }}Dictionary|UnitEnum|string $type
+     * @param int $id
+     * @param {{ meta.projectName }}Dictionary|UnitEnum|string|null $childType
+     * @param string|null $relationshipName
+     * @return void
+     * @throws Exception
+     */
     protected function addRelationshipRelatedLink(
         ResourceObject $resource,
         LinkneticCoursesDictionary|UnitEnum|string $type,

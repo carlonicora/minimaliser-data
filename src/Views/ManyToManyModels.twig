@@ -35,11 +35,11 @@ class {{ data.meta.destination.tableCapitalised }} extends Abstract{{ data.attri
         );
 
         foreach (${{ data.meta.destination.field }}s as ${{ data.meta.destination.field }}){
-            $resource = new ResourceObject('{{ data.meta.destination.table }}', $this->encrypter->encryptId(${{ data.meta.destination.field }}));
+            $resource = new ResourceObject('{{ data.meta.destination.tableSingular|lower }}', $this->encrypter->encryptId(${{ data.meta.destination.field }}));
             $resource->links->add(
                 new Link(
                     name: "self",
-                    href: $this->path->getUrl() . '{{ data.meta.destination.table }}/' . $this->encrypter->encryptId(${{ data.meta.destination.field }})
+                    href: $this->path->getUrl() . '{{ data.meta.destination.table|lower }}/' . $this->encrypter->encryptId(${{ data.meta.destination.field }})
                 )
             );
             $this->document->addResource($resource);

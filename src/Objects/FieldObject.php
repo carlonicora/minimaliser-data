@@ -44,6 +44,9 @@ class FieldObject implements MinimaliserObjectInterface
     /** @var TableObject|null  */
     private ?TableObject $foreignKey=null;
 
+    /** @var array|null  */
+    private ?array $enumValues=null;
+
     /**
      * @param TableObject $table
      * @param array $field
@@ -80,6 +83,13 @@ class FieldObject implements MinimaliserObjectInterface
             $this->phpType = 'int';
         } elseif ($this->sqlFieldType === MySqlFieldType::tinyint && $this->length === 1) {
             $this->phpType = 'bool';
+        } elseif ($this->sqlFieldType === MySqlFieldType::enum){
+            $this->phpType = 'string';
+            $enums = explode(',', substr($fieldTypePart[1], 0, -1));
+            $this->enumValues = [];
+            foreach ($enums as $enumValue){
+                $this->enumValues[] = substr($enumValue, 1, -1);
+            }
         } else {
             $this->phpType = $this->sqlFieldType->getPhpType($length);
         }
@@ -124,6 +134,10 @@ class FieldObject implements MinimaliserObjectInterface
         }
         $response->meta->add(name: 'capitalisedName', value: ucfirst($this->name));
         $response->meta->add(name: 'isId', value: $this->option === SqlFieldOption::AutoIncrement);
+
+        if ($this->enumValues !== null){
+            $response->meta->add('enumValues', $this->enumValues);
+        }
 
         if ($this->isForeignKey){
             $metaForeignKey = [
@@ -214,5 +228,12 @@ class FieldObject implements MinimaliserObjectInterface
 
     public function getForeignKeyField(): string|null {
         return $this->foreignKeyField;
+    }
+
+    /**
+     * @return string[]|null
+     */
+    public function getEnumValues(): array|null {
+        return $this->enumValues;
     }
 }

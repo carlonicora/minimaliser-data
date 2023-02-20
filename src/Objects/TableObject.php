@@ -229,6 +229,7 @@ class TableObject implements MinimaliserObjectInterface
         $response->attributes->add(name: 'namespace', value: $this->namespace);
         $response->attributes->add(name: 'databaseIdentifier', value: $this->databaseIdentifier);
         $response->attributes->add(name: 'tableName', value: $this->tableName);
+        $response->attributes->add(name: 'tableNameSingular', value: Pluraliser::singular($this->tableName));
         $response->attributes->add(name: 'objectNameLowercase', value: strtolower($this->objectName));
         $response->attributes->add(name: 'objectName', value: $this->objectName);
         $response->attributes->add(name: 'objectNamePlural', value: $this->objectNamePlural);
@@ -371,6 +372,14 @@ class TableObject implements MinimaliserObjectInterface
         array $foreignKeyTable,
     ): void {
         $this->externalForeignKeyTables[] = $foreignKeyTable;
+    }
+
+    /**
+     * @return array
+     */
+    public function getExternalForeignKeyTable(
+    ): array {
+        return $this->externalForeignKeyTables;
     }
 
     /**

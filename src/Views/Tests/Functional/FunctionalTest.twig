@@ -65,9 +65,15 @@ class {{ data.attributes.objectNamePlural }} extends AbstractFunctionalTest
             type: {{ meta.projectName }}Dictionary::{{ data.attributes.objectName }}->value,
         );
 
-{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.meta.isId == false%}{% if field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt'%}
-        ${{ data.attributes.objectName | lower }}->attributes->add(name: '{{ field.attributes.name}}', value: {% if field.attributes.phpType == 'string' %}'{{ field.attributes.name }}4'{% elseif field.attributes.phpType == 'bool' %}true{% else %}{% if field.meta.DbFieldType == 'DbFieldType::IntDateTime' %}time(){% else %}{% if field.meta.isForeignKey == true %}MinimalismServiceFactory::create(Encrypter::class)->encryptId(1){% else %}4{%endif%}{% endif %}{% endif %});
-{% endif %}{% endif %}{% endfor %}
+{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}
+{% if field.meta.isId == false and field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt'%}
+{% if field.meta.FK %}
+        ${{ data.attributes.objectName | lower }}->attributes->add(name: '{{ field.meta.FK.field}}', value: MinimalismServiceFactory::create(Encrypter::class)->encryptId(1));
+{% else %}
+        ${{ data.attributes.objectName | lower }}->attributes->add(name: '{{ field.attributes.name}}', value: {% if field.meta.enumValues %}'{{ field.meta.enumValues[0] }}'{% else %}{% if field.attributes.phpType == 'string' %}'{{ field.attributes.name }}4'{% elseif field.attributes.phpType == 'bool' %}true{% else %}{% if field.meta.DbFieldType == 'DbFieldType::IntDateTime' %}time(){% else %}{% if field.meta.isForeignKey == true %}MinimalismServiceFactory::create(Encrypter::class)->encryptId(1){% else %}4{%endif%}{% endif %}{% endif %}{% endif %});
+{% endif %}
+{% endif %}
+{% endfor %}
 
         ${{ data.attributes.objectName | lower }}Document->addResource(${{ data.attributes.objectName | lower }});
 
@@ -82,7 +88,7 @@ class {{ data.attributes.objectNamePlural }} extends AbstractFunctionalTest
     * @test
     * @return void
     * @throws Exception
-    * @covers \Linknetic\Minimalism\Api\Models\{{ data.attributes.objectNamePlural }}::post()
+    * @covers \{{ meta.namespace }}Models\{{ data.attributes.objectNamePlural }}::post()
     */
     public function SHOULD_Return412_WHEN_UserCreates{{ data.attributes.objectName }}WithoutPayload(
     ): void
@@ -99,7 +105,7 @@ class {{ data.attributes.objectNamePlural }} extends AbstractFunctionalTest
     * @dataProvider postData
     * @return void
     * @throws Exception
-    * @covers \Linknetic\Minimalism\Api\Models\{{ data.attributes.objectNamePlural }}::post()
+    * @covers \{{ meta.namespace }}Models\{{ data.attributes.objectNamePlural }}::post()
     */
     public function SHOULD_Return{{ data.attributes.objectName }}_WHEN_UserCreates{{ data.attributes.objectName }}(
         Document $document,
@@ -128,9 +134,15 @@ class {{ data.attributes.objectNamePlural }} extends AbstractFunctionalTest
             id: MinimalismServiceFactory::create(Encrypter::class)->encryptId(3),
         );
 
-{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.meta.isId == false%}{% if field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt'%}
-        ${{ data.attributes.objectName | lower }}->attributes->add(name: '{{ field.attributes.name}}', value: {% if field.attributes.phpType == 'string' %}'{{ field.attributes.name }}NewValue'{% elseif field.attributes.phpType == 'bool' %}false{% else %}{% if field.meta.DbFieldType == 'DbFieldType::IntDateTime' %}time(){% else %}{% if field.meta.isForeignKey == true %}MinimalismServiceFactory::create(Encrypter::class)->encryptId(1){% else %}5{%endif%}{% endif %}{% endif %});
-{% endif %}{% endif %}{% endfor %}
+{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}
+{% if field.meta.isId == false and field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt'%}
+{% if field.meta.FK %}
+        ${{ data.attributes.objectName | lower }}->attributes->add(name: '{{ field.meta.FK.field }}', value: MinimalismServiceFactory::create(Encrypter::class)->encryptId(1));
+{% else %}
+        ${{ data.attributes.objectName | lower }}->attributes->add(name: '{{ field.attributes.name}}', value: {% if field.meta.enumValues %}'{{ field.meta.enumValues[0] }}'{% else %}{% if field.attributes.phpType == 'string' %}'{{ field.attributes.name }}NewValue'{% elseif field.attributes.phpType == 'bool' %}false{% else %}{% if field.meta.DbFieldType == 'DbFieldType::IntDateTime' %}time(){% else %}{% if field.meta.isForeignKey == true %}MinimalismServiceFactory::create(Encrypter::class)->encryptId(1){% else %}5{%endif%}{% endif %}{% endif %}{% endif %});
+{% endif %}
+{% endif %}
+{% endfor %}
 
         ${{ data.attributes.objectName | lower }}Document->addResource(${{ data.attributes.objectName | lower }});
 
@@ -145,7 +157,7 @@ class {{ data.attributes.objectNamePlural }} extends AbstractFunctionalTest
     * @test
     * @return void
     * @throws Exception
-    * @covers \Linknetic\Minimalism\Api\Models\{{ data.attributes.objectNamePlural }}::patch()
+    * @covers \{{ meta.namespace }}Models\{{ data.attributes.objectNamePlural }}::patch()
     */
     public function SHOULD_Return412_WHEN_UserUpdates{{ data.attributes.objectName }}WithoutPayload(
     ): void
@@ -163,7 +175,7 @@ class {{ data.attributes.objectNamePlural }} extends AbstractFunctionalTest
     * @dataProvider patchData
     * @return void
     * @throws Exception
-    * @covers \Linknetic\Minimalism\Api\Models\{{ data.attributes.objectNamePlural }}::patch()
+    * @covers \{{ meta.namespace }}Models\{{ data.attributes.objectNamePlural }}::patch()
     */
     public function SHOULD_Return204_WHEN_UserUpdates{{ data.attributes.objectName }}(
         Document $document,

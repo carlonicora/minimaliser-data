@@ -44,7 +44,8 @@ class {{ data.attributes.objectName }}EditValidator extends AbstractDataValidato
     ): bool
     {
         $this->getDocument()->getSingleResource()->id = $this->encrypter->decryptId($this->getDocument()->getSingleResource()->id);
-{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}{% if field.meta.isId == false and field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt' and field.meta.FK %}
+{% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}
+{% if field.meta.isId == false and field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt' and field.meta.FK %}
 
         $this->getDocument()->getSingleResource()->attributes->update(
             name: '{{ field.meta.FK.field }}',

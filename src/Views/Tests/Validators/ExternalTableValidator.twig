@@ -1,0 +1,23 @@
+<?php
+namespace {{ meta.namespace }}Tests\Validators;
+
+use CarloNicora\JsonApi\Objects\ResourceObject;
+use CarloNicora\Minimalism\TestSuite\Enums\ResourceElements;
+use {{ meta.namespace }}Tests\Abstracts\AbstractValidator;
+
+class {{ data.type }}Validator extends AbstractValidator
+{
+    /**
+     * @param ResourceObject $resource
+     * @return void
+     */
+    public static function validateListOnly(
+        ResourceObject $resource,
+    ): void
+    {
+        self::assertEquals(expected: '{{ data.id }}', actual: $resource->type);
+        self::assertNotNull(actual: $resource->id);
+        self::validateResourceElement(ResourceElements::Link, $resource, ['self']);
+        self::assertEquals(expected: 0, actual: $resource->attributes->count());
+    }
+}
