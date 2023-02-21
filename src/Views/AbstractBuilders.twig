@@ -63,7 +63,7 @@ abstract class Abstract{{ data.attributes.objectName }}Builder extends Abstract{
             resource: $response,
             type: '{{ field.meta.FK.table|lower }}',
             id: $data->get{{ field.meta.FK.fieldCapitalised }}(),
-            relationshipName: '{{ field.meta.FK.tableSingular }}',
+            relationshipName: '{{ field.meta.FK.tableSingular|lower }}',
         );
 {% endif %}
 {% endfor %}

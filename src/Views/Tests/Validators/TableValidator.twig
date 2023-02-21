@@ -33,11 +33,11 @@ class {{ data.attributes.objectName }}Validator extends AbstractValidator
         self::validateResourceElement(ResourceElements::Relationship, ${{ data.attributes.objectName | lower }}, [
 {% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}
 {% if field.meta.FK %}
-            '{{ field.meta.FK.tableSingular }}',
+            '{{ field.meta.FK.tableSingular|lower }}',
 {% endif %}
 {% endfor %}
 {% for externalFkTable in data.meta.externalFkTables %}
-            '{{ externalFkTable.name }}',
+            '{{ externalFkTable.name|lower }}',
 {% endfor %}
         ]);
     }
