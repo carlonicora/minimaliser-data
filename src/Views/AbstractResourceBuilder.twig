@@ -112,9 +112,9 @@ abstract class Abstract{{ meta.projectName }}ResourceBuilder extends AbstractRes
      */
     protected function addRelationshipRelatedLink(
         ResourceObject $resource,
-        LinkneticCoursesDictionary|UnitEnum|string $type,
+        {{ meta.projectName }}Dictionary|UnitEnum|string $type,
         int $id,
-        LinkneticCoursesDictionary|UnitEnum|string|null $childType=null,
+        {{ meta.projectName }}Dictionary|UnitEnum|string|null $childType=null,
         string|null $relationshipName=null,
     ): void
     {
