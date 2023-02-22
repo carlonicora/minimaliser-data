@@ -4,6 +4,7 @@ namespace CarloNicora\Minimalism\MinimaliserData\Objects;
 use CarloNicora\Minimalism\Exceptions\MinimalismException;
 use CarloNicora\Minimalism\Interfaces\Sql\Factories\SqlQueryFactory;
 use CarloNicora\Minimalism\Interfaces\Sql\Interfaces\SqlInterface;
+use CarloNicora\Minimalism\MinimaliserData\Data;
 use CarloNicora\Minimalism\MinimaliserData\Data\Tables\Databases\TablesTable;
 use CarloNicora\Minimalism\MinimaliserData\Factories\Pluraliser;
 
@@ -17,6 +18,7 @@ class DatabaseObject
      * @param string $projectName
      * @param string $namespace
      * @param string $identifier
+     * @param string[] $loadedServices
      * @throws MinimalismException
      */
     public function __construct(
@@ -24,6 +26,7 @@ class DatabaseObject
         string $projectName,
         string $namespace,
         string $identifier,
+        array $loadedServices,
     )
     {
         $factory = SqlQueryFactory::create(
@@ -44,6 +47,7 @@ class DatabaseObject
                 namespace: $namespace,
                 databaseIdentifier: $identifier,
                 name: $tableName,
+                loadedServices: $loadedServices,
             );
         }
 

@@ -2,6 +2,7 @@
 namespace CarloNicora\Minimalism\MinimaliserData;
 
 use CarloNicora\Minimalism\Abstracts\AbstractService;
+use CarloNicora\Minimalism\Factories\MinimalismFactories;
 use CarloNicora\Minimalism\MinimaliserData\Factories\FileFactory;
 use CarloNicora\Minimalism\MinimaliserData\Factories\TestsFactory;
 use CarloNicora\Minimalism\Services\Path;
@@ -111,5 +112,14 @@ class Data extends AbstractService
     ): string
     {
         return $this->dataDirectory;
+    }
+
+    public function isServiceLoaded(
+        string $serviceName,
+    ): bool
+    {
+        $a = $this->objectFactory->create($serviceName);
+        //return $this->minimalismFactories->getServiceFactory()->create($serviceName) !== null;
+        return true;
     }
 }

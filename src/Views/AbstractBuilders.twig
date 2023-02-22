@@ -48,7 +48,7 @@ abstract class Abstract{{ data.attributes.objectName }}Builder extends Abstract{
 
         $response = $this->create({{ data.attributes.project }}Dictionary::{{ data.attributes.objectName }});
 {% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}
-{% if field.meta.isId == false and not field.meta.FK and field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt'%}
+{% if field.meta.isId == false and not field.meta.FK and field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt' and field.attributes.name != 'avatar'%}
 
         $response->attributes->add(
             name: '{{ field.attributes.name }}',
@@ -57,6 +57,19 @@ abstract class Abstract{{ data.attributes.objectName }}Builder extends Abstract{
 {% endif %}
 {% endfor %}
 {% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}
+{% if field.attributes.name == 'avatar' %}
+
+        $response->links->add(
+            new Link(
+                name: 'avatar',
+{% if data.meta.imgix %}
+                href: $this->imgix->generateSignedUrl($data->get{{ field.attributes.name|capitalize }}()),
+{% else %}
+                href: $data->get{{ field.attributes.name|capitalize }}(),
+{% endif %}
+            )
+        );
+{% endif %}
 {% if field.meta.FK %}
 
         $this->addSimplifiedRelationshipRelatedLink(

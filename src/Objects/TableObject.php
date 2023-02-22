@@ -5,6 +5,7 @@ use CarloNicora\JsonApi\Objects\ResourceObject;
 use CarloNicora\Minimalism\Exceptions\MinimalismException;
 use CarloNicora\Minimalism\Interfaces\Sql\Factories\SqlQueryFactory;
 use CarloNicora\Minimalism\Interfaces\Sql\Interfaces\SqlInterface;
+use CarloNicora\Minimalism\MinimaliserData\Data;
 use CarloNicora\Minimalism\MinimaliserData\Data\TableDefinition\Databases\TableDefinitionTable;
 use CarloNicora\Minimalism\MinimaliserData\Data\Tables\Databases\TablesTable;
 use CarloNicora\Minimalism\MinimaliserData\Factories\Pluraliser;
@@ -43,6 +44,7 @@ class TableObject implements MinimaliserObjectInterface
      * @param string $namespace
      * @param string $databaseIdentifier
      * @param string $name
+     * @param string[] $loadedServices
      * @throws MinimalismException
      */
     public function __construct(
@@ -51,6 +53,7 @@ class TableObject implements MinimaliserObjectInterface
         private readonly string $namespace,
         private readonly string $databaseIdentifier,
         private string $name,
+        private array $loadedServices,
     )
     {
         $this->tableName = $this->name;
@@ -235,6 +238,8 @@ class TableObject implements MinimaliserObjectInterface
         $response->attributes->add(name: 'objectNamePlural', value: $this->objectNamePlural);
         $response->attributes->add(name: 'isComplete', value: $this->isComplete);
         $response->attributes->add(name: 'isManyToMany', value: $this->name !== $this->tableName);
+
+        $response->meta->add(name: 'imgix', value: $this->loadedServices['CarloNicora\Minimalism\Services\Imgix\Imgix'] !== null);
 
         if ($this->externalForeignKeyTables !== []){
             $response->meta->add('externalFkTables', $this->externalForeignKeyTables);

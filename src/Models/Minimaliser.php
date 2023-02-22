@@ -30,7 +30,7 @@ class Minimaliser extends AbstractModel
      * @param string|null $function
      */
     public function __construct(
-        MinimalismFactories $minimalismFactories,
+        private MinimalismFactories $minimalismFactories,
         ?string $function = null,
     )
     {
@@ -129,11 +129,18 @@ class Minimaliser extends AbstractModel
                 }
             }
 
+            $loadedServices = [];
+
+            foreach ($this->minimalismFactories->getServiceFactory()->getServices() as $serviceKey => $service) {
+                $loadedServices[$serviceKey] = $serviceKey;
+            }
+
             $database = new DatabaseObject(
                 data: $this->data,
                 projectName: $this->projectName,
                 namespace: $this->minimaliser->getNamespace(),
                 identifier: $this->databaseIdentifier,
+                loadedServices: $loadedServices,
             );
 
             $this->writeObjects(
