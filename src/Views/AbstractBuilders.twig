@@ -87,7 +87,7 @@ abstract class Abstract{{ data.attributes.objectName }}Builder extends Abstract{
             resource: $response,
             type: {{ data.attributes.project }}Dictionary::{{ data.attributes.objectName }},
             id: $data->getId(),
-            childType: '{{ tableIdentifier.name }}',
+            childType: '{{ tableIdentifier.name|lower }}',
         );
 {% endfor %}
 {% endif %}
