@@ -28,7 +28,7 @@ class {{ data.attributes.objectName }}EditValidator extends AbstractDataValidato
 {% if field.meta.FK %}
         $resourceValidator->addAttributeValidator(new AttributeValidator(name: '{{ field.meta.FK.field }}'));
 {% else %}
-        $resourceValidator->addAttributeValidator(new AttributeValidator(name: '{{ field.attributes.name }}'{% if field.meta.isForeignKey is not defined %}{% if field.attributes.phpType == 'int' %},type: DataTypes::int{% elseif field.attributes.phpType == 'bool' %},type: DataTypes::bool{% endif%}{% endif %}));
+        $resourceValidator->addAttributeValidator(new AttributeValidator(name: '{{ field.attributes.name }}'{% if field.meta.isForeignKey is not defined %}{% if field.attributes.phpType == 'int' %},type: DataTypes::int{% elseif field.attributes.phpType == 'float' %},type: DataTypes::float{% elseif field.attributes.phpType == 'bool' %},type: DataTypes::bool{% endif%}{% endif %}));
 {% endif %}{% endif %}{% endfor %}
 
         $this->documentValidator->addResourceValidator(
