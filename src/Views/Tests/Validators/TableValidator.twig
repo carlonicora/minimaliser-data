@@ -22,7 +22,7 @@ class {{ data.attributes.objectName }}Validator extends AbstractValidator
         self::validateResourceElement(ResourceElements::Meta, ${{ data.attributes.objectName | lower }}, ['createdAt','updatedAt']);
         self::validateResourceElement(ResourceElements::Attribute, ${{ data.attributes.objectName | lower }}, [
 {% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}
-{%if field.meta.isId == false and field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt' and field.attributes.name != 'avatar'%}
+{%if field.meta.isId == false and field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt' and field.attributes.name != 'image'%}
 {% if field.meta.FK == null %}
             '{{ field.attributes.name }}',
 {% endif %}
@@ -32,8 +32,8 @@ class {{ data.attributes.objectName }}Validator extends AbstractValidator
         self::validateResourceElement(ResourceElements::Link, ${{ data.attributes.objectName | lower }}, [
             'self',
 {% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}
-{% if field.attributes.name == 'avatar' %}
-            'avatar',
+{% if field.attributes.name == 'image' %}
+            'image',
 {% endif %}
 {% endfor %}
         ]);
