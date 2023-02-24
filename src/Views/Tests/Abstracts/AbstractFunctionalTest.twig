@@ -25,6 +25,12 @@ abstract class AbstractFunctionalTest extends \CarloNicora\Minimalism\TestSuite\
     /** @var Verbs|null */
     protected static ?Verbs $verb = null;
 
+    public function __construct(?string $name = null, array $data = [], $dataName = '')
+    {
+        self::deleteAllFilesInFolder(__DIR__ . '/../../cache');
+        parent::__construct($name, $data, $dataName);
+    }
+
     /**
      * @throws Exception
      */
