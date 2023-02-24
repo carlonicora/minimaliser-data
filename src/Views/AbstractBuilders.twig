@@ -86,7 +86,7 @@ abstract class Abstract{{ data.attributes.objectName }}Builder extends Abstract{
             new Link(
                 name: 'image',
 {% if data.meta.imgix %}
-                href: $this->imgix->generateSignedUrl($image),
+                href: $image !== null ? $this->imgix->generateSignedUrl($image) : '',
 {% else %}
                 href: $image !== null ? $data->get{{ field.attributes.name|capitalize }}() : '',
 {% endif %}
