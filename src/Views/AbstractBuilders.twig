@@ -18,22 +18,6 @@ use CarloNicora\Minimalism\Services\Path;
 
 abstract class Abstract{{ data.attributes.objectName }}Builder extends Abstract{{ data.attributes.project }}ResourceBuilder
 {
-{% if data.meta.imgix %}
-    /**
-     * @param Imgix $imgix
-     * @param EncrypterInterface $encrypter
-     * @param Path $path
-     */
-    public function __construct(
-        private readonly Imgix $imgix,
-        EncrypterInterface $encrypter,
-        Path $path,
-    )
-    {
-        parent::__construct($encrypter, $path);
-    }
-
-{% endif %}
     /**
      * @param int $id
      * @return ResourceObject
