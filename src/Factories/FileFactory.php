@@ -185,18 +185,21 @@ class FileFactory
 
     /**
      * @param string $projectName
+     * @param string[] $loadedServices
      * @param TableObject[] $tables
      * @return void
      * @throws Exception
      */
     public static function createFiles(
         string $projectName,
+        array $loadedServices,
         array $tables,
     ): void
     {
         $document = new Document();
         $document->meta->add(name: 'projectName', value: $projectName);
-        
+        $document->meta->add(name: 'imgix', value: $loadedServices['CarloNicora\Minimalism\Services\Imgix\Imgix'] !== null);
+
         foreach ($tables as $key => $table){
             $document->addResource($table->generateResourceObject());
 

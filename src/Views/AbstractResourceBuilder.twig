@@ -11,7 +11,7 @@ use CarloNicora\Minimalism\Services\Path;
 use CarloNicora\Minimalism\Services\ResourceBuilder\Abstracts\AbstractResourceBuilder;
 use Exception;
 use UnitEnum;
-{% if data.meta.imgix %}
+{% if meta.imgix %}
 use CarloNicora\Minimalism\Services\Imgix\Imgix;
 {% endif %}
 
@@ -24,14 +24,14 @@ abstract class Abstract{{ meta.projectName }}ResourceBuilder extends AbstractRes
     protected ?string $hash=null;
 
     /**
-{% if data.meta.imgix %}
+{% if meta.imgix %}
      * @param Imgix $imgix,
 {% endif %}
      * @param EncrypterInterface $encrypter
      * @param Path $path
      */
     public function __construct(
-{% if data.meta.imgix %}
+{% if meta.imgix %}
         protected Imgix $imgix,
 {% endif %}
         EncrypterInterface $encrypter,

@@ -145,6 +145,7 @@ class Minimaliser extends AbstractModel
 
             $this->writeObjects(
                 tables: $database->getTables(),
+                loadedServices: $loadedServices,
             );
 
             $this->writeTests(
@@ -159,15 +160,18 @@ class Minimaliser extends AbstractModel
 
     /**
      * @param array $tables
+     * @param string[] $loadedServices
      * @return void
      * @throws Exception
      */
     private function writeObjects(
         array $tables,
+        array $loadedServices,
     ): void
     {
         FileFactory::createFiles(
             projectName: $this->projectName,
+            loadedServices: $loadedServices,
             tables: $tables,
         );
 
