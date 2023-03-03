@@ -5,6 +5,9 @@ use CarloNicora\Minimalism\Enums\HttpCode;
 use Exception;
 use {{ meta.namespace }}Tests\Abstracts\AbstractFunctionalTest;
 use {{ meta.namespace }}Tests\Data\{{ data.attributes.databaseIdentifier }}\{{ data.attributes.objectNamePlural }}Data;
+{% if data.meta.parent.manyToMany and data.meta.parent.tableExists %}
+use {{ meta.namespace }}Tests\Data\{{ data.attributes.databaseIdentifier }}\{{ data.meta.parent.pluralCapitalised }}Data;
+{% endif %}
 use {{ meta.namespace }}Tests\Validators\{{ data.meta.parent.singularCapitalised }}Validator;
 
 class {{ data.meta.parent.pluralCapitalised }} extends AbstractFunctionalTest
@@ -27,4 +30,25 @@ class {{ data.meta.parent.pluralCapitalised }} extends AbstractFunctionalTest
             {{ data.meta.parent.singularCapitalised }}Validator::validateListOnly($resource);
         }
     }
+{% if data.meta.parent.manyToMany %}
+
+    /**
+     * @test
+     * return void
+     * @throws Exception
+     * @covers \{{ meta.namespace }}Models\{{ data.attributes.objectNamePlural }}\{{ data.meta.parent.pluralCapitalised }}::delete()
+     */
+    public function SHOULD_Return204_WHEN_UserDeletes{{ data.meta.parent.singularCapitalised }}{{ data.attributes.objectNamePlural }}(
+    ): void
+    {
+        /** @noinspection UnusedFunctionResultInspection */
+        $this->runApiCall(
+            expectedResult: HttpCode::NoContent,
+            endpointParams: [
+                {{ data.attributes.objectNamePlural }}Data::Value1->value,
+                {% if data.meta.parent.tableExists %}{{ data.meta.parent.pluralCapitalised }}Data::Value1->value{% else %}1{% endif %},
+            ]
+        );
+    }
+{% endif %}
 }

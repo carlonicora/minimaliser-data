@@ -100,6 +100,17 @@ abstract class AbstractFunctionalTest extends \CarloNicora\Minimalism\TestSuite\
             }
         }
 
+        $additionalParameters = "?";
+        foreach ($parameters as $parameterKey => $parameterValue) {
+            if (!is_int($parameterKey)){
+                $additionalParameters .= $parameterKey . "=" . $parameterValue . "&";
+            }
+        }
+
+        if (strlen($additionalParameters) > 1){
+            $response .= substr($additionalParameters, 0, -1);
+        }
+
         return $response;
     }
 

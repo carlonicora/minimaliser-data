@@ -5,7 +5,6 @@ use CarloNicora\JsonApi\Objects\ResourceObject;
 use CarloNicora\Minimalism\Exceptions\MinimalismException;
 use CarloNicora\Minimalism\Interfaces\Sql\Factories\SqlQueryFactory;
 use CarloNicora\Minimalism\Interfaces\Sql\Interfaces\SqlInterface;
-use CarloNicora\Minimalism\MinimaliserData\Data;
 use CarloNicora\Minimalism\MinimaliserData\Data\TableDefinition\Databases\TableDefinitionTable;
 use CarloNicora\Minimalism\MinimaliserData\Data\Tables\Databases\TablesTable;
 use CarloNicora\Minimalism\MinimaliserData\Factories\Pluraliser;
@@ -53,7 +52,7 @@ class TableObject implements MinimaliserObjectInterface
         private readonly string $namespace,
         private readonly string $databaseIdentifier,
         private string $name,
-        private array $loadedServices,
+        private readonly array $loadedServices,
     )
     {
         $this->tableName = $this->name;
@@ -397,6 +396,22 @@ class TableObject implements MinimaliserObjectInterface
         foreach ($this->fields as $field){
             if ($field->isForeignKey() && $field->getName() !== $startField->getName()){
                 return $field->getForeignKeyTable();
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param FieldObject $startField
+     * @return string|null
+     */
+    public function getRelatedManyToManyPrimaryKey(
+        FieldObject $startField,
+    ): string|null {
+        foreach ($this->fields as $field){
+            if ($field->isForeignKey() && $field->getName() !== $startField->getName()){
+                return $field->getForeignKeyField();
             }
         }
 

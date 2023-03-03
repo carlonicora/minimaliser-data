@@ -6,6 +6,7 @@ use CarloNicora\Minimalism\Enums\HttpCache;
 use CarloNicora\JsonApi\Objects\Link;
 use CarloNicora\JsonApi\Objects\ResourceObject;
 use CarloNicora\Minimalism\Interfaces\Encrypter\Parameters\PositionedEncryptedParameter;
+use CarloNicora\Minimalism\Interfaces\Encrypter\Parameters\EncryptedParameter;
 use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\{{ data.attributes.objectName }}IO;
 use {{ data.attributes.namespace }}Models\Abstracts\Abstract{{ data.attributes.project }}Model;
 use Exception;
@@ -48,5 +49,21 @@ class {{ data.meta.destination.tableCapitalised }} extends Abstract{{ data.attri
         $this->addPagination($page);
 
         return HttpCode::Ok;
+    }
+
+    /**
+     * @param PositionedEncryptedParameter ${{ data.meta.source.field }}
+     * @param PositionedEncryptedParameter ${{ data.meta.destination.field }}
+     * @return HttpCode
+     * @throws Exception
+     */
+    public function delete(
+        PositionedEncryptedParameter ${{ data.meta.source.field }},
+        PositionedEncryptedParameter ${{ data.meta.destination.field }},
+    ): HttpCode
+    {
+        $this->objectFactory->create({{ data.attributes.objectName }}IO::class)->deleteBy{{ data.meta.source.fieldCapitalised }}{{ data.meta.destination.fieldCapitalised }}(${{ data.meta.source.field }}->getValue(), ${{ data.meta.destination.field }}->getValue());
+
+        return HttpCode::NoContent;
     }
 }

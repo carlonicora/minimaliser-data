@@ -30,7 +30,7 @@ class Minimaliser extends AbstractModel
      * @param string|null $function
      */
     public function __construct(
-        private MinimalismFactories $minimalismFactories,
+        private readonly MinimalismFactories $minimalismFactories,
         ?string $function = null,
     )
     {

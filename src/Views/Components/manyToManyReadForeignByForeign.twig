@@ -29,3 +29,21 @@
 
         return $response;
     }
+
+    /**
+     * @param int ${{ foreignRight.field }}
+     * @param int ${{ foreignLeft.field }}
+     * @return void
+     * @throws MinimalismException
+     */
+    public function deleteBy{{ foreignRight.fieldCapitalised }}{{ foreignLeft.fieldCapitalised }}(
+        int ${{ foreignRight.field }},
+        int ${{ foreignLeft.field }},
+    ): void {
+        $factory = SqlQueryFactory::create({{ tableName }}Table::class)
+            ->delete()
+            ->addParameter({{ tableName }}Table::{{ foreignRight.table }}_{{ foreignRight.field }}, ${{ foreignRight.field }})
+            ->addParameter({{ tableName }}Table::{{ foreignLeft.table }}_{{ foreignLeft.field }}, ${{ foreignLeft.field }});
+
+        $this->data->delete($factory);
+    }

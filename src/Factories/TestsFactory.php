@@ -243,6 +243,9 @@ class TestsFactory
                     'plural' => $externalForeignKeyTable['name'],
                     'singularCapitalised' => Pluraliser::singular(ucfirst($externalForeignKeyTable['relationshipName'])),
                     'pluralCapitalised' => ucfirst($externalForeignKeyTable['name']),
+                    'field' => $externalForeignKeyTable['primaryKey'],
+                    'manyToMany' => $externalForeignKeyTable['manyToMany'],
+                    'tableExists' => $externalForeignKeyTable['tableExists'],
                 ]);
                 $document->addResource($resource);
 

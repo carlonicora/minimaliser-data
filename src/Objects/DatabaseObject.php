@@ -4,7 +4,6 @@ namespace CarloNicora\Minimalism\MinimaliserData\Objects;
 use CarloNicora\Minimalism\Exceptions\MinimalismException;
 use CarloNicora\Minimalism\Interfaces\Sql\Factories\SqlQueryFactory;
 use CarloNicora\Minimalism\Interfaces\Sql\Interfaces\SqlInterface;
-use CarloNicora\Minimalism\MinimaliserData\Data;
 use CarloNicora\Minimalism\MinimaliserData\Data\Tables\Databases\TablesTable;
 use CarloNicora\Minimalism\MinimaliserData\Factories\Pluraliser;
 
@@ -63,16 +62,23 @@ class DatabaseObject
                 if ($field->isForeignKey()) {
                     if ($table->isManyToMany()) {
                         $name = $table->getRelatedManyToManyTable($field);
+                        $primaryKey = $table->getRelatedManyToManyPrimaryKey($field);
                         if ($name !== null) {
                             $this->getTable($field->getForeignKeyTable())?->addExternalForeignKeyTable([
                                 'name' => $name,
-                                'relationshipName' => $name
+                                'relationshipName' => $name,
+                                'primaryKey' => $primaryKey,
+                                'manyToMany' => true,
+                                'tableExists' => $this->getTable($name) !== null,
                             ]);
                         }
                     } else {
                         $this->getTable($field->getForeignKeyTable())?->addExternalForeignKeyTable([
                             'name' => $table->getName(),
                             'relationshipName' => Pluraliser::singular($table->getName()),
+                            'primaryKey' => $table->getPrimaryKey()?->getName(),
+                            'manyToMany' => false,
+                            'tableExists' => true,
                         ]);
                     }
                 }
