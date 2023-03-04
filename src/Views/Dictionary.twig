@@ -12,14 +12,10 @@ use {{ meta.namespace }}Data\{{ table.attributes.objectNamePlural }}\AutoGenerat
 enum {{ meta.projectName }}Dictionary: string
 {
 {% if data.attributes %}
-{% if data.attributes.isManyToMany == false %}
     case {{ data.attributes.objectName }}='{{ data.attributes.objectName | lower}}';
-{% endif %}
 {% else %}
 {% for table in data %}
-{% if table.attributes.isManyToMany == false %}
     case {{ table.attributes.objectName }}='{{ table.attributes.objectName | lower}}';
-{% endif %}
 {% endfor %}
 {% endif %}
 
@@ -31,14 +27,10 @@ enum {{ meta.projectName }}Dictionary: string
     {
         return match ($this) {
 {% if data.attributes %}
-{% if data.attributes.isManyToMany == false %}
             self::{{ data.attributes.objectName }} => '{{ data.attributes.primaryKey }}',
-{% endif %}
 {% else %}
 {% for table in data %}
-{% if table.attributes.isManyToMany == false %}
             self::{{ table.attributes.objectName }} => '{{ table.attributes.primaryKey }}',
-{% endif %}
 {% endfor %}
 {% endif %}
         };
@@ -52,14 +44,10 @@ enum {{ meta.projectName }}Dictionary: string
     {
         return match ($this) {
 {% if data.attributes %}
-{% if data.attributes.isManyToMany == false %}
             self::{{ data.attributes.objectName }} => '{{ data.attributes.objectNamePlural | lower}}',
-{% endif %}
 {% else %}
 {% for table in data %}
-{% if table.attributes.isManyToMany == false %}
             self::{{ table.attributes.objectName }} => '{{ table.attributes.objectNamePlural | lower}}',
-{% endif %}
 {% endfor %}
 {% endif %}
         };
@@ -73,14 +61,10 @@ enum {{ meta.projectName }}Dictionary: string
     {
         return match ($this) {
 {% if data.attributes %}
-{% if data.attributes.isManyToMany == false %}
             self::{{ data.attributes.objectName }} => {{ data.attributes.objectNamePlural}}Table::class,
-{% endif %}
 {% else %}
 {% for table in data %}
-{% if table.attributes.isManyToMany == false %}
             self::{{ table.attributes.objectName }} => {{ table.attributes.objectNamePlural}}Table::class,
-{% endif %}
 {% endfor %}
 {% endif %}
         };

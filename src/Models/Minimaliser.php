@@ -206,7 +206,7 @@ class Minimaliser extends AbstractModel
                 table: $table,
             );
 
-            if (!$table->isManyToMany() && $table->isComplete()) {
+            if ($table->isComplete()) {
                 TestsFactory::generateFunctionalTestFiles(
                     namespace: $this->minimaliser->getNamespace(),
                     projectName: $this->projectName,

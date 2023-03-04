@@ -73,6 +73,13 @@ class FileFactory
                     self::createManyToManyModel($table, $foreignKeys[0], $foreignKeys[1]);
                     self::createManyToManyModel($table, $foreignKeys[1], $foreignKeys[0]);
                 }
+
+                self::createObjectFile(type: Generator::AbstractBuilders, table: $table);
+                self::createObjectFile(type: Generator::Builders, table: $table);
+                self::createObjectFile(type: Generator::CreatorValidators, table: $table);
+                self::createObjectFile(type: Generator::Models, table: $table);
+                self::createObjectFile(type: Generator::AbstractCaches, table: $table);
+                self::createObjectFile(type: Generator::Caches, table: $table);
             }else {
                 self::createObjectFile(type: Generator::AbstractBuilders, table: $table);
                 self::createObjectFile(type: Generator::Builders, table: $table);
