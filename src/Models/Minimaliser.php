@@ -9,6 +9,8 @@ use CarloNicora\Minimalism\MinimaliserData\Factories\FileFactory;
 use CarloNicora\Minimalism\MinimaliserData\Factories\TestsFactory;
 use CarloNicora\Minimalism\MinimaliserData\Objects\DatabaseObject;
 use CarloNicora\Minimalism\MinimaliserData\Objects\TableObject;
+use CarloNicora\Minimalism\Services\Discovery\Discovery;
+use CarloNicora\Minimalism\Services\Discovery\Factories\MicroserviceDataFactory;
 use Exception;
 
 class Minimaliser extends AbstractModel
@@ -114,17 +116,27 @@ class Minimaliser extends AbstractModel
             if (count($dbs) === 1){
                 $this->databaseIdentifier = $dbs[0];
             } else {
-                echo 'Available database:' . PHP_EOL;
-                foreach ($dbs as $dbKey => $dbName){
-                    echo '  ' . $dbKey . '. ' . $dbName . PHP_EOL;
+                if (count($dbs) === 2){
+                    if ($dbs[0] === 'OAuth'){
+                        $this->databaseIdentifier = $dbs[1];
+                    } elseif ($dbs[1] === 'OAuth'){
+                        $this->databaseIdentifier = $dbs[0];
+                    }
                 }
 
-                while ($this->databaseIdentifier === null) {
-                    $input = $this->readInput(prompt: 'Select database to import');
-                    if (is_numeric($input) && $input <= count($dbs) - 1){
-                        $this->databaseIdentifier = $dbs[$input];
-                    } else {
-                        echo 'Invalid selection';
+                if ($this->databaseIdentifier === null) {
+                    echo 'Available database:' . PHP_EOL;
+                    foreach ($dbs as $dbKey => $dbName) {
+                        echo '  ' . $dbKey . '. ' . $dbName . PHP_EOL;
+                    }
+
+                    while ($this->databaseIdentifier === null) {
+                        $input = $this->readInput(prompt: 'Select database to import');
+                        if (is_numeric($input) && $input <= count($dbs) - 1) {
+                            $this->databaseIdentifier = $dbs[$input];
+                        } else {
+                            echo 'Invalid selection';
+                        }
                     }
                 }
             }
@@ -181,6 +193,12 @@ class Minimaliser extends AbstractModel
                 table: $table,
             );
         }
+
+        $dataFactory = new MicroserviceDataFactory(
+            path: $this->minimalismFactories->getServiceFactory()->getPath(),
+            discovery: $this->minimalismFactories->getServiceFactory()->create(Discovery::class),
+        );
+        $dataFactory->write([FileFactory::getServiceData()]);
     }
 
     /**

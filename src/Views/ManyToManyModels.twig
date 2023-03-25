@@ -1,6 +1,9 @@
 <?php
 namespace {{ data.attributes.namespace }}Models\{{ data.meta.source.tableCapitalised }};
 
+use CarloNicora\Minimalism\ApiCaller\ApiCaller;
+use CarloNicora\Minimalism\ApiCaller\Data\ApiRequest;
+use CarloNicora\Minimalism\ApiCaller\Enums\Verbs;
 use CarloNicora\Minimalism\Enums\HttpCode;
 use CarloNicora\Minimalism\Enums\HttpCache;
 use CarloNicora\JsonApi\Objects\Link;
@@ -45,7 +48,24 @@ class {{ data.meta.destination.tableCapitalised }} extends Abstract{{ data.attri
             )
         );
 {% else %}
-    //TABLE {{ data.meta.destination.table }} DOES NOT EXIST
+        $endpoint = $this->discovery->getEndpointUrl('{{ data.meta.destination.table }}', $url, $hostname);
+
+        $endpoint .= '/' . ${{ data.meta.source.field }}->getEncryptedValue();
+        if ($page !== null){
+            $endpoint .= '?page=' . http_build_query($page);
+        }
+
+        $response = (new ApiCaller())->call(
+            new ApiRequest(
+                verb: Verbs::Get,
+                endpoint: $endpoint,
+                bearer: explode(' ', $_ENV['HTTP_AUTHORIZATION'])[1],
+            ),
+            serverUrl: $url,
+            hostName: $hostname,
+        );
+
+        $this->document = $response->getResponse();
 {% endif %}
         $this->addPagination($page);
 

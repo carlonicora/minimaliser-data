@@ -9,6 +9,7 @@ use CarloNicora\Minimalism\Exceptions\MinimalismException;
 use CarloNicora\Minimalism\Factories\MinimalismFactories;
 use CarloNicora\Minimalism\Interfaces\Security\Interfaces\SecurityInterface;
 use CarloNicora\Minimalism\Services\ResourceBuilder\ResourceBuilder;
+use CarloNicora\Minimalism\Services\Discovery\Discovery;
 use {{ meta.namespace }}Api;
 use CarloNicora\Minimalism\Services\Path;
 use Exception;
@@ -23,6 +24,9 @@ abstract class Abstract{{ meta.projectName }}Model extends AbstractModel
 
     /** @var EncrypterInterface  */
     protected EncrypterInterface $encrypter;
+
+    /** @var Discovery  */
+    protected Discovery $discovery;
 
     /** @var SecurityInterface  */
     protected SecurityInterface $authorisation;
@@ -47,6 +51,7 @@ abstract class Abstract{{ meta.projectName }}Model extends AbstractModel
         $this->api = $minimalismFactories->getServiceFactory()->create(Api::class);
         $this->builder = $minimalismFactories->getServiceFactory()->create(ResourceBuilder::class);
         $this->encrypter = $minimalismFactories->getServiceFactory()->create(EncrypterInterface::class);
+        $this->discovery = $minimalismFactories->getServiceFactory()->create(Discovery::class);
 
         if (!$this->authorisation->getUserId()){
             throw new MinimalismException(status: HttpCode::Unauthorized);

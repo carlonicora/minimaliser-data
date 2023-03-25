@@ -5,6 +5,10 @@ use CarloNicora\JsonApi\Document;
 use CarloNicora\Minimalism\MinimaliserData\Enums\Generator;
 use CarloNicora\Minimalism\MinimaliserData\Enums\SharedFile;
 use CarloNicora\Minimalism\MinimaliserData\Objects\TableObject;
+use CarloNicora\Minimalism\Services\Discovery\Data\EndpointData;
+use CarloNicora\Minimalism\Services\Discovery\Data\MethodData;
+use CarloNicora\Minimalism\Services\Discovery\Data\MicroserviceData;
+use CarloNicora\Minimalism\Services\Discovery\Data\ServiceData;
 use CarloNicora\Minimalism\Services\Twig\Twig;
 use Exception;
 
@@ -18,6 +22,9 @@ class FileFactory
 
     /** @var string  */
     private static string $sourceDirectory;
+
+    /** @var ServiceData  */
+    private static ServiceData $service;
 
     /**
      * @param Twig $twig
@@ -34,9 +41,30 @@ class FileFactory
         self::$twig = $twig;
         self::$dataDirectory = $dataDirectory;
         self::$sourceDirectory = $sourceDirectory;
+        self::$service = new ServiceData($_ENV['MINIMALISM_SERVICE_DISCOVERY_SERVICE']);
+
+        $microservice = new MicroserviceData($_ENV['MINIMALISM_SERVICE_DISCOVERY_MICROSERVICE']);
+        $microservice->setPublicKey($_ENV['MINIMALISM_SERVICE_DISCOVERY_PUBLIC_KEY']);
+        $microservice->setDocker($_ENV['MINIMALISM_SERVICE_DISCOVERY_DOCKER']);
+        $microservice->setUrl($_ENV['MINIMALISM_SERVICE_DISCOVERY_URL']);
+        $microservice->setVersion($_ENV['MINIMALISM_SERVICE_DISCOVERY_VERSION']);
+        $microservice->setHostname($_ENV['MINIMALISM_SERVICE_DISCOVERY_HOSTNAME']);
+
+        self::$service->add($microservice);
     }
 
+    /**
+     * @return ServiceData
+     */
+    public static function getServiceData(): ServiceData {
+        return self::$service;
+    }
 
+    /**
+     * @param array $tables
+     * @param string $name
+     * @return TableObject|null
+     */
     private static function tableExists(
         array $tables,
         string $name,
@@ -92,6 +120,13 @@ class FileFactory
                     self::createManyToManyModel($table, $foreignKeys[1], $foreignKeys[0]);
                 }
             }else {
+                $endpoint = new EndpointData($table->getName());
+                $endpoint->add(new MethodData('post'));
+                $endpoint->add(new MethodData('get'));
+                $endpoint->add(new MethodData('delete'));
+                $endpoint->add(new MethodData('patch'));
+                self::$service->findChild($_ENV['MINIMALISM_SERVICE_DISCOVERY_MICROSERVICE'])?->add($endpoint);
+
                 self::createObjectFile(type: Generator::UpdaterValidators, table: $table);
                 self::createObjectFile(type: Generator::AbstractBuilders, table: $table);
                 self::createObjectFile(type: Generator::Builders, table: $table);
