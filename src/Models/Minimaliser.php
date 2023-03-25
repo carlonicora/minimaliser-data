@@ -177,6 +177,7 @@ class Minimaliser extends AbstractModel
 
         foreach ($tables as $table) {
             FileFactory::generateObjectFiles(
+                tables: $tables,
                 table: $table,
             );
         }
@@ -206,7 +207,7 @@ class Minimaliser extends AbstractModel
                 table: $table,
             );
 
-            if ($table->isComplete()) {
+            if (!$table->isManyToMany() && $table->isComplete()) {
                 TestsFactory::generateFunctionalTestFiles(
                     namespace: $this->minimaliser->getNamespace(),
                     projectName: $this->projectName,

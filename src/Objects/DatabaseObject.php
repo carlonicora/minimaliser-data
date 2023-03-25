@@ -68,7 +68,10 @@ class DatabaseObject
                                 'name' => $name,
                                 'relationshipName' => $name,
                                 'primaryKey' => $primaryKey,
+                                'primaryKeyCapitalised' => ucfirst($primaryKey),
                                 'manyToMany' => true,
+                                'manyToManyObject' => $table->getObjectName(),
+                                'manyToManyObjectPlural' => Pluraliser::plural($table->getObjectName()),
                                 'tableExists' => $this->getTable($name) !== null,
                             ]);
                         }

@@ -110,7 +110,7 @@ class TestsFactory
         }
 
         foreach ($tables as $table){
-            if ($table->isComplete()) {
+            if (!$table->isManyToMany() && $table->isComplete()) {
                 $singleDocument = clone($document);
                 $singleDocument->addResource($table->generateResourceObject());
 

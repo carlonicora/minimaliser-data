@@ -26,7 +26,9 @@ class Pluraliser
     ): string {
         $response = $name;
 
-        if (strtolower(substr($name, strlen($name)-1)) !== 's') {
+        if (strtolower(substr($name, strlen($name)-1)) === 'y') {
+            $response = substr($response, 0, -1) . 'ies';
+        } elseif (strtolower(substr($name, strlen($name)-1)) !== 's') {
             $response = $name . 's';
         }
 

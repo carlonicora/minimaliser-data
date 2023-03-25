@@ -2,10 +2,10 @@
     /**
      * @param int ${{ foreignLeft.field }}
      * @param array|null $page
-     * @return array
+     * @return {{ objectName }}[]
      * @throws Exception
      */
-    public function read{{ foreignRight.fieldCapitalised }}sBy{{ foreignLeft.fieldCapitalised }}(
+    public function readBy{{ foreignLeft.fieldCapitalised }}(
         int ${{ foreignLeft.field }},
         ?array $page=null,
     ): array {
@@ -14,20 +14,11 @@
 
         $this->addPagination($factory, $page, {{ tableName }}Table::{{ primaryKey }});
 
-        $response = [];
-
-        /** @var {{ objectName }}[] $recordset */
-        $recordset = $this->data->read(
+        return $this->data->read(
             queryFactory: $factory,
             responseType: {{ objectName }}::class,
             requireObjectsList: true,
         );
-
-        foreach ($recordset as $record){
-            $response[] = $record->get{{ foreignRight.fieldCapitalised }}();
-        }
-
-        return $response;
     }
 
     /**

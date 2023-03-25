@@ -36,12 +36,28 @@ class FileFactory
         self::$sourceDirectory = $sourceDirectory;
     }
 
+
+    private static function tableExists(
+        array $tables,
+        string $name,
+    ): TableObject|null {
+        foreach ($tables as $table) {
+            if (strtolower($table->getName()) === strtolower($name)){
+                return $table;
+            }
+        }
+
+        return null;
+    }
+
     /**
+     * @param TableObject[] $tables
      * @param TableObject $table
      * @return void
      * @throws Exception
      */
     public static function generateObjectFiles(
+        array $tables,
         TableObject $table,
     ): void
     {
@@ -62,9 +78,11 @@ class FileFactory
                         $foreignKeys[] = [
                             'table' => $field->getForeignKeyTable(),
                             'tableSingular' => Pluraliser::singular($field->getForeignKeyTable()),
+                            'tableSingularCapitalised' => ucfirst(Pluraliser::singular($field->getForeignKeyTable())),
                             'tableCapitalised' => ucfirst($field->getForeignKeyTable()),
                             'field' => $field->getForeignKeyField(),
                             'fieldCapitalised' => ucfirst($field->getForeignKeyField()),
+                            'isExistingTable' => self::tableExists($tables, $field->getForeignKeyTable()) !== null,
                         ];
                     }
                 }
@@ -73,17 +91,10 @@ class FileFactory
                     self::createManyToManyModel($table, $foreignKeys[0], $foreignKeys[1]);
                     self::createManyToManyModel($table, $foreignKeys[1], $foreignKeys[0]);
                 }
-
-                self::createObjectFile(type: Generator::AbstractBuilders, table: $table);
-                self::createObjectFile(type: Generator::Builders, table: $table);
-                self::createObjectFile(type: Generator::CreatorValidators, table: $table);
-                self::createObjectFile(type: Generator::Models, table: $table);
-                self::createObjectFile(type: Generator::AbstractCaches, table: $table);
-                self::createObjectFile(type: Generator::Caches, table: $table);
             }else {
+                self::createObjectFile(type: Generator::UpdaterValidators, table: $table);
                 self::createObjectFile(type: Generator::AbstractBuilders, table: $table);
                 self::createObjectFile(type: Generator::Builders, table: $table);
-                self::createObjectFile(type: Generator::UpdaterValidators, table: $table);
                 self::createObjectFile(type: Generator::CreatorValidators, table: $table);
                 self::createObjectFile(type: Generator::Models, table: $table);
                 self::createObjectFile(type: Generator::AbstractCaches, table: $table);

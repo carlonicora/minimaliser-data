@@ -9,15 +9,19 @@ class {{ data.type }}Validator extends AbstractValidator
 {
     /**
      * @param ResourceObject $resource
+     * @param bool $isManyToMany
      * @return void
      */
     public static function validateListOnly(
         ResourceObject $resource,
+        bool $isManyToMany=false,
     ): void
     {
-        self::assertEquals(expected: '{{ data.id }}', actual: $resource->type);
+        if (!$isManyToMany) {
+            self::assertEquals(expected: '{{ data.id }}', actual: $resource->type);
+        }
         self::assertNotNull(actual: $resource->id);
-        self::validateResourceElement(ResourceElements::Link, $resource, ['self']);
+        self::validateResourceElement(ResourceElements::Link, $resource, ['self', 'related']);
         self::assertEquals(expected: 0, actual: $resource->attributes->count());
     }
 }

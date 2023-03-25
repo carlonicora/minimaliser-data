@@ -27,7 +27,7 @@ class {{ data.meta.parent.pluralCapitalised }} extends AbstractFunctionalTest
         );
 
         foreach ($response->getResources() as $resource) {
-            {{ data.meta.parent.singularCapitalised }}Validator::validateListOnly($resource);
+            {{ data.meta.parent.singularCapitalised }}Validator::validateListOnly($resource{% if data.attributes.isManyToMany %}, true{% endif %});
         }
     }
 {% if data.meta.parent.manyToMany %}

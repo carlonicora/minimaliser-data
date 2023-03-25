@@ -8,6 +8,10 @@ use CarloNicora\JsonApi\Objects\ResourceObject;
 use CarloNicora\Minimalism\Interfaces\Encrypter\Parameters\PositionedEncryptedParameter;
 use CarloNicora\Minimalism\Interfaces\Encrypter\Parameters\EncryptedParameter;
 use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\{{ data.attributes.objectName }}IO;
+{% if data.meta.destination.isExistingTable %}
+use {{ data.attributes.namespace }}Data\{{ data.meta.destination.tableCapitalised }}\{{ data.meta.destination.tableSingularCapitalised }}Builder;
+use {{ data.attributes.namespace }}Data\{{ data.meta.destination.tableCapitalised }}\{{ data.meta.destination.tableSingularCapitalised }}IO;
+{% endif %}
 use {{ data.attributes.namespace }}Models\Abstracts\Abstract{{ data.attributes.project }}Model;
 use Exception;
 
@@ -30,22 +34,19 @@ class {{ data.meta.destination.tableCapitalised }} extends Abstract{{ data.attri
         ?array $page=null,
     ): HttpCode
     {
-        ${{ data.meta.destination.field }}s = $this->objectFactory->create({{ data.attributes.objectName }}IO::class)->read{{ data.meta.destination.fieldCapitalised }}sBy{{ data.meta.source.fieldCapitalised }}(
-            {{ data.meta.source.field }}: ${{ data.meta.source.field }}->getValue(),
-            page: $page,
+        $page = $this->decryptPagination($page);
+{% if data.meta.destination.isExistingTable %}
+        ${{ data.meta.destination.table }} = $this->objectFactory->create({{ data.meta.destination.tableSingularCapitalised }}IO::class)->readBy{{ data.meta.source.fieldCapitalised }}({{ data.meta.source.field }}: ${{ data.meta.source.field }}->getValue(), page: $page);
+
+        $this->document->addResourceList(
+            $this->builder->buildResources(
+                builderClass: {{ data.meta.destination.tableSingularCapitalised }}Builder::class,
+                data: ${{ data.meta.destination.table }},
+            )
         );
-
-        foreach (${{ data.meta.destination.field }}s as ${{ data.meta.destination.field }}){
-            $resource = new ResourceObject('{{ data.meta.destination.tableSingular|lower }}', $this->encrypter->encryptId(${{ data.meta.destination.field }}));
-            $resource->links->add(
-                new Link(
-                    name: "self",
-                    href: $this->path->getUrl() . '{{ data.meta.destination.table|lower }}/' . $this->encrypter->encryptId(${{ data.meta.destination.field }})
-                )
-            );
-            $this->document->addResource($resource);
-        }
-
+{% else %}
+    //TABLE {{ data.meta.destination.table }} DOES NOT EXIST
+{% endif %}
         $this->addPagination($page);
 
         return HttpCode::Ok;

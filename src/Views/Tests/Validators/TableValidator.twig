@@ -51,15 +51,19 @@ class {{ data.attributes.objectName }}Validator extends AbstractValidator
 
     /**
      * @param ResourceObject ${{ data.attributes.objectName | lower }}
+     * @param bool $isManyToMany
      * @return void
      */
     public static function validateListOnly(
         ResourceObject ${{ data.attributes.objectName | lower }},
+        bool $isManyToMany=false,
     ): void
     {
-        self::assertEquals(expected: {{ meta.projectName }}Dictionary::{{ data.attributes.objectName }}->value, actual: ${{ data.attributes.objectName | lower }}->type);
+        if (!$isManyToMany) {
+            self::assertEquals(expected: {{ meta.projectName }}Dictionary::{{ data.attributes.objectName }}->value, actual: ${{ data.attributes.objectName | lower }}->type);
+        }
         self::assertNotNull(actual: ${{ data.attributes.objectName | lower }}->id);
-        self::validateResourceElement(ResourceElements::Link, ${{ data.attributes.objectName | lower }}, ['self']);
+        self::validateResourceElement(ResourceElements::Link, ${{ data.attributes.objectName | lower }}, ['self','related']);
         self::assertEquals(expected: 0, actual: ${{ data.attributes.objectName | lower }}->attributes->count());
     }
 }
