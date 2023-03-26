@@ -3,7 +3,6 @@ namespace CarloNicora\Minimalism\MinimaliserData\Models;
 
 use CarloNicora\Minimalism\Abstracts\AbstractModel;
 use CarloNicora\Minimalism\Enums\HttpCode;
-use CarloNicora\Minimalism\Exceptions\MinimalismException;
 use CarloNicora\Minimalism\Factories\MinimalismFactories;
 use CarloNicora\Minimalism\Interfaces\Sql\Interfaces\SqlInterface;
 use CarloNicora\Minimalism\MinimaliserData\Data;
@@ -203,6 +202,7 @@ class Minimaliser extends AbstractModel
         }
 
         $discovery = $this->minimalismFactories->getServiceFactory()->create(Discovery::class);
+        $discovery->setMicroserviceRegistry([FileFactory::getServiceData()]);
         $dataFactory = new MicroserviceDataFactory(
             path: $this->minimalismFactories->getServiceFactory()->getPath(),
             discovery: $discovery,
