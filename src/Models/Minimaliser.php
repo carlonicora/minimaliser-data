@@ -2,6 +2,8 @@
 namespace CarloNicora\Minimalism\MinimaliserData\Models;
 
 use CarloNicora\Minimalism\Abstracts\AbstractModel;
+use CarloNicora\Minimalism\Enums\HttpCode;
+use CarloNicora\Minimalism\Exceptions\MinimalismException;
 use CarloNicora\Minimalism\Factories\MinimalismFactories;
 use CarloNicora\Minimalism\Interfaces\Sql\Interfaces\SqlInterface;
 use CarloNicora\Minimalism\MinimaliserData\Data;
@@ -11,6 +13,7 @@ use CarloNicora\Minimalism\MinimaliserData\Objects\DatabaseObject;
 use CarloNicora\Minimalism\MinimaliserData\Objects\TableObject;
 use CarloNicora\Minimalism\Services\Discovery\Discovery;
 use CarloNicora\Minimalism\Services\Discovery\Factories\MicroserviceDataFactory;
+use CarloNicora\Minimalism\Services\Discovery\Models\Discovery\RunRegister;
 use Exception;
 
 class Minimaliser extends AbstractModel
@@ -96,11 +99,11 @@ class Minimaliser extends AbstractModel
     }
 
     /**
-     * @return never
+     * @return HttpCode
      * @throws Exception
      */
     public function cli(
-    ): never
+    ): HttpCode
     {
         system('clear');
         $namespace = $this->minimaliser->getNamespace();
@@ -163,11 +166,16 @@ class Minimaliser extends AbstractModel
             $this->writeTests(
                 tables: $database->getTables(),
             );
-        } else {
-            echo 'No databases specified in the .env file.';
+
+
+            return $this->redirect(
+                modelClass: RunRegister::class,
+                function: 'cli'
+            );
         }
 
-        exit;
+        echo 'No databases specified in the .env file.';
+        return HttpCode::Ok;
     }
 
     /**
@@ -194,9 +202,10 @@ class Minimaliser extends AbstractModel
             );
         }
 
+        $discovery = $this->minimalismFactories->getServiceFactory()->create(Discovery::class);
         $dataFactory = new MicroserviceDataFactory(
             path: $this->minimalismFactories->getServiceFactory()->getPath(),
-            discovery: $this->minimalismFactories->getServiceFactory()->create(Discovery::class),
+            discovery: $discovery,
         );
         $dataFactory->write([FileFactory::getServiceData()]);
     }
