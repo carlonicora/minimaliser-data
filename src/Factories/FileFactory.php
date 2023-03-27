@@ -43,7 +43,8 @@ class FileFactory
         self::$sourceDirectory = $sourceDirectory;
         self::$service = new ServiceData($_ENV['MINIMALISM_SERVICE_DISCOVERY_SERVICE']);
 
-        $microservice = new MicroserviceData($_ENV['MINIMALISM_SERVICE_DISCOVERY_MICROSERVICE']);
+        $microservice = new MicroserviceData($_ENV['MINIMALISM_SERVICE_DISCOVERY_SERVICE'] . '-' . $_ENV['MINIMALISM_SERVICE_DISCOVERY_MICROSERVICE']);
+        $microservice->setName($_ENV['MINIMALISM_SERVICE_DISCOVERY_MICROSERVICE']);
         $microservice->setPublicKey($_ENV['MINIMALISM_SERVICE_DISCOVERY_PUBLIC_KEY']);
         $microservice->setDocker($_ENV['MINIMALISM_SERVICE_DISCOVERY_DOCKER']);
         $microservice->setUrl($_ENV['MINIMALISM_SERVICE_DISCOVERY_URL']);
@@ -120,12 +121,14 @@ class FileFactory
                     self::createManyToManyModel($table, $foreignKeys[1], $foreignKeys[0]);
                 }
             }else {
-                $endpoint = new EndpointData($table->getName());
+                $endpoint = new EndpointData($_ENV['MINIMALISM_SERVICE_DISCOVERY_SERVICE'] . '-' . $_ENV['MINIMALISM_SERVICE_DISCOVERY_MICROSERVICE'] . '-' . $table->getName());
+                $endpoint->setName($table->getName());
                 $endpoint->add(new MethodData('post'));
                 $endpoint->add(new MethodData('get'));
                 $endpoint->add(new MethodData('delete'));
                 $endpoint->add(new MethodData('patch'));
-                self::$service->findChild($_ENV['MINIMALISM_SERVICE_DISCOVERY_MICROSERVICE'])?->add($endpoint);
+                self::$service->findChild($_ENV['MINIMALISM_SERVICE_DISCOVERY_SERVICE'] . '-' . $_ENV['MINIMALISM_SERVICE_DISCOVERY_MICROSERVICE'])?->add($endpoint);
+
 
                 self::createObjectFile(type: Generator::UpdaterValidators, table: $table);
                 self::createObjectFile(type: Generator::AbstractBuilders, table: $table);
