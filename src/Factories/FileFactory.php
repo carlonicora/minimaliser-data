@@ -165,6 +165,11 @@ class FileFactory
                             viewFile: 'ChildModelExistingTable',
                         );
                         file_put_contents($fileName, $file);
+
+                        $endpoint = new EndpointData($_ENV['MINIMALISM_SERVICE_DISCOVERY_SERVICE'] . '-' . $_ENV['MINIMALISM_SERVICE_DISCOVERY_MICROSERVICE'] . '-' . $table->getName() . '-' . Pluraliser::plural($field->getForeignKeyTable()));
+                        $endpoint->setName(Pluraliser::plural($field->getForeignKeyTable()) . '/:' . $field->getForeignKeyField(). '/' . $table->getName());
+                        $endpoint->add(new MethodData('get'));
+                        self::$service->findChild($_ENV['MINIMALISM_SERVICE_DISCOVERY_SERVICE'] . '-' . $_ENV['MINIMALISM_SERVICE_DISCOVERY_MICROSERVICE'])?->add($endpoint);
                     }
                 }
             }
