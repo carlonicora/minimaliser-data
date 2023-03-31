@@ -47,11 +47,19 @@ class {{ data.meta.destination.tableCapitalised }} extends Abstract{{ data.attri
                 data: ${{ data.meta.destination.table }},
             )
         );
+
+        $this->addPagination($page);
 {% else %}
         $url = '';
         $endpoint = $this->discovery->getEndpointUrl('{{ data.meta.destination.table }}', $url, $hostname);
 
-        $endpoint .= '/' . ${{ data.meta.source.field }}->getEncryptedValue();
+        ${{ data.meta.source.tableSingular }}{{ data.meta.destination.tableCapitalised }} = $this->objectFactory->create({{ data.attributes.objectName }}IO::class)->readBy{{ data.meta.source.fieldCapitalised }}(${{ data.meta.source.field }}->getValue());
+        $ids = ['ids'=>[]];
+        foreach(${{ data.meta.source.tableSingular }}{{ data.meta.destination.tableCapitalised }} as ${{ data.meta.source.tableSingular }}{{ data.meta.destination.tableSingularCapitalised }}){
+            $ids['ids'][] = $this->encrypter->encryptId(${{ data.meta.source.tableSingular }}{{ data.meta.destination.tableSingularCapitalised }}->get{{ data.meta.destination.fieldCapitalised }}());
+        }
+
+        $endpoint .= '/?' . http_build_query($ids);
         if ($page !== null){
             $endpoint .= '?page=' . http_build_query($page);
         }
@@ -68,7 +76,6 @@ class {{ data.meta.destination.tableCapitalised }} extends Abstract{{ data.attri
 
         $this->document = $response->getResponse();
 {% endif %}
-        $this->addPagination($page);
 
         return HttpCode::Ok;
     }
