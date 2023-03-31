@@ -29,7 +29,7 @@ class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.
     /**
 {% if data.attributes.isManyToMany == false %}
      * @param PositionedEncryptedParameter|null $id
-     * @param EncryptedParameter[]|null $ids
+     * @param string[]|null $ids
      * @param array|null $page
 {% else %}
      * @param PositionedEncryptedParameter $id
@@ -82,7 +82,7 @@ class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.
 {% if data.attributes.isManyToMany == false %}
 
     /**
-     * @param EncryptedParameter[]|null $ids
+     * @param string[]|null $ids
      * @param array|null $page
      * @return void
      * @throws Exception
@@ -95,7 +95,11 @@ class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.
         $page = $this->decryptPagination($page);
 
         if ($ids !== null){
-            ${{ data.attributes.objectNamePlural | lower }} = $this->objectFactory->create({{ data.attributes.objectName }}IO::class)->readByIds(ids: $ids, page: $page);
+            $listOfIds = [];
+            foreach ($ids as $id){
+                $listOfIds[] = $this->encrypter->decryptId($id);
+            }
+            ${{ data.attributes.objectNamePlural | lower }} = $this->objectFactory->create({{ data.attributes.objectName }}IO::class)->readByIds(ids: $listOfIds, page: $page);
         } else {
             ${{ data.attributes.objectNamePlural | lower }} = $this->objectFactory->create({{ data.attributes.objectName }}IO::class)->readList(page: $page);
         }

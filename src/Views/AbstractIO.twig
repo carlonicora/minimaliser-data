@@ -52,7 +52,7 @@ abstract class Abstract{{ data.attributes.objectName }}IO extends Abstract{{ dat
     }
 
     /**
-     * @param EncryptedParameter[] $ids
+     * @param string[] $ids
      * @param array|null $page
      * @return {{ data.attributes.objectName }}[]
      * @throws MinimalismException
@@ -62,13 +62,8 @@ abstract class Abstract{{ data.attributes.objectName }}IO extends Abstract{{ dat
         ?array $page=null,
     ): array
     {
-        $listOfIds = [];
-        foreach ($ids as $id){
-            $listOfIds[] = $id->getValue();
-        }
-
         $factory = SqlQueryFactory::create({{ data.attributes.objectNamePlural }}Table::class)
-            ->addParameter({{ data.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }}, $listOfIds, SqlComparison::In);
+            ->addParameter({{ data.attributes.objectNamePlural }}Table::{{ data.attributes.primaryKey }}, $ids, SqlComparison::In);
 
         return $this->data->read(
             queryFactory: $factory,
