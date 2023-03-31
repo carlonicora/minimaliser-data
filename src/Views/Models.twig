@@ -4,6 +4,7 @@ namespace {{ data.attributes.namespace }}Models;
 use CarloNicora\Minimalism\Enums\HttpCode;
 use CarloNicora\Minimalism\Enums\HttpCache;
 use CarloNicora\Minimalism\Exceptions\MinimalismException;
+use CarloNicora\Minimalism\Interfaces\Encrypter\Parameters\EncryptedParameter;
 use CarloNicora\Minimalism\Interfaces\Encrypter\Parameters\PositionedEncryptedParameter;
 use CarloNicora\Minimalism\Services\ResourceBuilder\Interfaces\ResourceableDataInterface;
 use {{ data.attributes.namespace }}Models\Abstracts\Abstract{{ data.attributes.project }}Model;
@@ -28,6 +29,7 @@ class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.
     /**
 {% if data.attributes.isManyToMany == false %}
      * @param PositionedEncryptedParameter|null $id
+     * @param EncryptedParameter[]|null $ids
      * @param array|null $page
 {% else %}
      * @param PositionedEncryptedParameter $id
@@ -38,6 +40,7 @@ class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.
     public function get(
 {% if data.attributes.isManyToMany == false %}
         ?PositionedEncryptedParameter $id=null,
+        ?array $ids=null,
         ?array $page=null,
 {% else %}
         PositionedEncryptedParameter $id,
@@ -48,7 +51,7 @@ class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.
         if ($id !== null){
             $this->readSingle($id->getValue());
         } else {
-            $this->readList($page);
+            $this->readList($ids, $page);
         }
 {% else %}
         $this->readSingle($id->getValue());
@@ -79,16 +82,23 @@ class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.
 {% if data.attributes.isManyToMany == false %}
 
     /**
+     * @param EncryptedParameter[]|null $ids
      * @param array|null $page
      * @return void
      * @throws Exception
      */
     private function readList(
+        ?array $ids,
         ?array $page,
     ): void
     {
         $page = $this->decryptPagination($page);
-        ${{ data.attributes.objectNamePlural | lower }} = $this->objectFactory->create({{ data.attributes.objectName }}IO::class)->readList(page: $page);
+
+        if ($ids !== null){
+            ${{ data.attributes.objectNamePlural | lower }} = $this->objectFactory->create({{ data.attributes.objectName }}IO::class)->readByIds(ids: $ids, page: $page);
+        } else {
+            ${{ data.attributes.objectNamePlural | lower }} = $this->objectFactory->create({{ data.attributes.objectName }}IO::class)->readList(page: $page);
+        }
 
         $this->document->addResourceList(
             $this->builder->buildResources(
