@@ -48,6 +48,7 @@ class {{ data.meta.destination.tableCapitalised }} extends Abstract{{ data.attri
             )
         );
 {% else %}
+        $url = '';
         $endpoint = $this->discovery->getEndpointUrl('{{ data.meta.destination.table }}', $url, $hostname);
 
         $endpoint .= '/' . ${{ data.meta.source.field }}->getEncryptedValue();
