@@ -8,6 +8,7 @@ use CarloNicora\JsonApi\Objects\ResourceObject;
 use CarloNicora\Minimalism\Interfaces\Encrypter\Parameters\PositionedEncryptedParameter;
 use {{ data.attributes.namespace }}Models\Abstracts\Abstract{{ data.attributes.project }}Model;
 use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\{{ data.attributes.objectName }}IO;
+use {{ data.attributes.namespace }}Data\{{ data.attributes.objectNamePlural }}\{{ data.attributes.objectName }}Builder;
 use Exception;
 
 class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.project }}Model
@@ -34,16 +35,12 @@ class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.
             page: $page,
         );
 
-        foreach (${{ data.attributes.tableName }} as ${{ data.attributes.objectNameLowercase }}){
-            $resource = new ResourceObject('{{ data.attributes.tableNameSingular|lower }}', $this->encrypter->encryptId(${{ data.attributes.objectNameLowercase }}->getId()));
-            $resource->links->add(
-                new Link(
-                    name: "self",
-                    href: $this->path->getUrl() . '{{ data.attributes.tableName|lower }}/' . $this->encrypter->encryptId(${{ data.attributes.objectNameLowercase }}->getId())
-                )
-            );
-            $this->document->addResource($resource);
-        }
+        $this->document->addResourceList(
+            $this->builder->buildResources(
+                builderClass: {{ data.attributes.objectName }}Builder::class,
+                data: ${{ data.attributes.tableName }},
+            )
+        );
 
         $this->addPagination($page);
 

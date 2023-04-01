@@ -121,14 +121,13 @@ class FileFactory
                     self::createManyToManyModel($table, $foreignKeys[1], $foreignKeys[0]);
                 }
             }else {
-                $endpoint = new EndpointData($_ENV['MINIMALISM_SERVICE_DISCOVERY_SERVICE'] . '-' . $_ENV['MINIMALISM_SERVICE_DISCOVERY_MICROSERVICE'] . '-' . $table->getName());
-                $endpoint->setName($table->getName());
+                $endpoint = new EndpointData(strtolower($_ENV['MINIMALISM_SERVICE_DISCOVERY_SERVICE'] . '-' . $_ENV['MINIMALISM_SERVICE_DISCOVERY_MICROSERVICE'] . '-' . $table->getName()));
+                $endpoint->setName(strtolower($table->getName()));
                 $endpoint->add(new MethodData('post'));
                 $endpoint->add(new MethodData('get'));
                 $endpoint->add(new MethodData('delete'));
                 $endpoint->add(new MethodData('patch'));
-                self::$service->findChild($_ENV['MINIMALISM_SERVICE_DISCOVERY_SERVICE'] . '-' . $_ENV['MINIMALISM_SERVICE_DISCOVERY_MICROSERVICE'])?->add($endpoint);
-
+                self::$service->findChild(strtolower($_ENV['MINIMALISM_SERVICE_DISCOVERY_SERVICE'] . '-' . $_ENV['MINIMALISM_SERVICE_DISCOVERY_MICROSERVICE']))?->add($endpoint);
 
                 self::createObjectFile(type: Generator::UpdaterValidators, table: $table);
                 self::createObjectFile(type: Generator::AbstractBuilders, table: $table);
@@ -166,10 +165,10 @@ class FileFactory
                         );
                         file_put_contents($fileName, $file);
 
-                        $endpoint = new EndpointData($_ENV['MINIMALISM_SERVICE_DISCOVERY_SERVICE'] . '-' . $_ENV['MINIMALISM_SERVICE_DISCOVERY_MICROSERVICE'] . '-' . $table->getName() . '-' . Pluraliser::plural($field->getForeignKeyTable()));
-                        $endpoint->setName(Pluraliser::plural($field->getForeignKeyTable()) . '/:' . $field->getForeignKeyField(). '/' . $table->getName());
+                        $endpoint = new EndpointData(strtolower($_ENV['MINIMALISM_SERVICE_DISCOVERY_SERVICE'] . '-' . $_ENV['MINIMALISM_SERVICE_DISCOVERY_MICROSERVICE'] . '-' . $table->getName() . '-' . Pluraliser::plural($field->getForeignKeyTable())));
+                        $endpoint->setName(strtolower(Pluraliser::plural($field->getForeignKeyTable()) . '/:' . $field->getForeignKeyField(). '/' . $table->getName()));
                         $endpoint->add(new MethodData('get'));
-                        self::$service->findChild($_ENV['MINIMALISM_SERVICE_DISCOVERY_SERVICE'] . '-' . $_ENV['MINIMALISM_SERVICE_DISCOVERY_MICROSERVICE'])?->add($endpoint);
+                        self::$service->findChild(strtolower($_ENV['MINIMALISM_SERVICE_DISCOVERY_SERVICE'] . '-' . $_ENV['MINIMALISM_SERVICE_DISCOVERY_MICROSERVICE']))?->add($endpoint);
                     }
                 }
             }
