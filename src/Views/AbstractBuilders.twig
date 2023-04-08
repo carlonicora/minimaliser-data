@@ -74,14 +74,18 @@ abstract class Abstract{{ data.attributes.objectName }}Builder extends Abstract{
 {% endif %}
 {% if field.meta.FK %}
 
+{% if field.attributes.isNullable == true %}
         if ($data->get{{ field.meta.FK.fieldCapitalised }}() !== null) {
+{% endif %}
             $this->addSimplifiedRelationshipRelatedLink(
                 resource: $response,
                 type: '{{ field.meta.FK.table|lower }}',
                 id: $data->get{{ field.meta.FK.fieldCapitalised }}(),
                 relationshipName: '{{ field.meta.FK.tableSingular|lower }}',
             );
-        }
+    {% if field.attributes.isNullable %}
+    }
+    {% endif %}
 {% endif %}
 {% endfor %}
 {% if data.meta.externalFkTables %}

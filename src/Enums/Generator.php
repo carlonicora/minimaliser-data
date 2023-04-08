@@ -18,6 +18,8 @@ Enum Generator
     case Caches;
     case AbstractCaches;
     case ChildModels;
+    case NodeApi;
+    case NodeApiInterface;
 
     /**
      * @param TableObject $table
@@ -27,6 +29,14 @@ Enum Generator
         TableObject $table,
     ): string
     {
+        if ($this === self::NodeApi){
+            return $this->name . '.ts';
+        }
+        
+        if ($this === self::NodeApi || $this === self::NodeApiInterface){
+            return $this->name . 'Interface.ts';
+        }
+        
         $response = match ($this){
             self::Builders => $table->getObjectName() . 'Builder',
             self::AbstractBuilders => 'Abstract' . $table->getObjectName() . 'Builder',
@@ -67,6 +77,8 @@ Enum Generator
             self::Builders, self::IO, self::Caches => 'Data' . DIRECTORY_SEPARATOR . $table->getObjectNamePlural(),
             self::Models => $this->name,
             self::ChildModels => self::Models->name . DIRECTORY_SEPARATOR . $table->getObjectNamePlural(),
+            self::NodeApi => '..'. DIRECTORY_SEPARATOR .'node'. DIRECTORY_SEPARATOR .'api',
+            self::NodeApiInterface => '..'. DIRECTORY_SEPARATOR .'node'. DIRECTORY_SEPARATOR .'api'. DIRECTORY_SEPARATOR . 'interfaces',
         };
 
         return $response . DIRECTORY_SEPARATOR;

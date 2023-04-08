@@ -136,6 +136,9 @@ class FileFactory
                 self::createObjectFile(type: Generator::Models, table: $table);
                 self::createObjectFile(type: Generator::AbstractCaches, table: $table);
                 self::createObjectFile(type: Generator::Caches, table: $table);
+                
+//                self::createObjectFile(type: Generator::NodeApi, table: $table);
+//                self::createObjectFile(type: Generator::NodeApiInterface, table: $table);
 
                 foreach ($table->getFields() ?? [] as $field){
                     if ($field->isForeignKey()){
