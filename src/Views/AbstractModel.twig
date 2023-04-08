@@ -95,7 +95,7 @@ abstract class Abstract{{ meta.projectName }}Model extends AbstractModel
         $url = $this->path->getUrl() . substr($this->path->getUri(), 1);
         $url .= (str_contains(haystack: $url, needle: '?')) ? '&' : '?';
 
-        if ($page !== null && array_key_exists('brfore', $page)){
+        if ($page !== null && array_key_exists('before', $page)){
             $this->document->links->add(
                 new Link(
                     name: 'previous',
@@ -116,16 +116,18 @@ abstract class Abstract{{ meta.projectName }}Model extends AbstractModel
             )
         );
 
-        $this->document->links->add(
-            new Link(
-                name: 'next',
-                href: $url .
-                    $this->createPaginationString(
-                    size: $size,
-                    after: $currentId,
-                    ),
-            )
-        );
+        if (count($this->document->resources) === $size) {
+            $this->document->links->add(
+                new Link(
+                    name: 'next',
+                    href: $url .
+                        $this->createPaginationString(
+                            size: $size,
+                            after: $currentId,
+                        ),
+                )
+            );
+        }
     }
 
     /**
