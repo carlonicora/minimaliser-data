@@ -17,7 +17,7 @@ class Pluraliser
         } elseif (strtolower(substr($name, strlen($name)-3)) === 'ses') {
             $response = substr($name, 0, -2);
         } elseif (strtolower(substr($name, strlen($name)-2)) === 'es') {
-            $response = substr($name, 0, -2);
+            $response = substr($name, 0, -1);
         } elseif (strtolower(substr($name, strlen($name)-1)) === 's') {
             $response = substr($name, 0, -1);
         }
