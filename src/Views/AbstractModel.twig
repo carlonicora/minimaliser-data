@@ -65,6 +65,10 @@ abstract class Abstract{{ meta.projectName }}Model extends AbstractModel
         ?array &$page,
     ): void
     {
+        if ($page === null){
+            return;
+        }
+
         if (array_key_exists('before', $page)){
             $page['before'] = $this->encrypter->decryptId($page['before']);
         }
