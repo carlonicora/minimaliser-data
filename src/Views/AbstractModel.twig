@@ -59,17 +59,12 @@ abstract class Abstract{{ meta.projectName }}Model extends AbstractModel
     }
 
     /**
-    * @param array|null $page
-    * @return array|null
-    */
-    protected function decryptPagination(
-        ?array $page,
-    ): ?array
+     * @param array|null $page
+     */
+    protected function updatePaginationIds(
+        ?array &$page,
+    ): void
     {
-        if ($page === null){
-            return null;
-        }
-
         if (array_key_exists('before', $page)){
             $page['before'] = $this->encrypter->decryptId($page['before']);
         }
@@ -77,8 +72,6 @@ abstract class Abstract{{ meta.projectName }}Model extends AbstractModel
         if (array_key_exists('after', $page)){
             $page['after'] = $this->encrypter->decryptId($page['after']);
         }
-
-        return $page;
     }
 
     /**

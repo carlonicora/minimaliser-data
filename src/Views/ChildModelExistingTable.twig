@@ -30,6 +30,8 @@ class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.
         ?array $page=null,
     ): HttpCode
     {
+        $this->updatePaginationIds($page);
+
         ${{ data.attributes.tableName }} = $this->objectFactory->create({{ data.attributes.objectName }}IO::class)->readBy{{ data.meta.parent.fieldCapitalised }}(
             {{ data.meta.parent.field }}: ${{ data.meta.parent.field }}->getValue(),
             page: $page,

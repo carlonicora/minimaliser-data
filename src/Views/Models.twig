@@ -48,6 +48,8 @@ class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.
     ): HttpCode
     {
 {% if data.attributes.isManyToMany == false %}
+        $this->updatePaginationIds($page);
+
         if ($id !== null){
             $this->readSingle($id->getValue());
         } else {
@@ -92,7 +94,7 @@ class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.
         ?array $page,
     ): void
     {
-        $page = $this->decryptPagination($page);
+        $this->updatePaginationIds($page);
 
         if ($ids !== null){
             $listOfIds = [];
