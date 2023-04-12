@@ -34,6 +34,9 @@ abstract class Abstract{{ meta.projectName }}Model extends AbstractModel
     /** @var Path  */
     protected Path $path;
 
+    /** @var array */
+    protected array $freeMethods = [];
+
     /**
      * @param MinimalismFactories $minimalismFactories
      * @param string|null $function
@@ -53,7 +56,7 @@ abstract class Abstract{{ meta.projectName }}Model extends AbstractModel
         $this->encrypter = $minimalismFactories->getServiceFactory()->create(EncrypterInterface::class);
         $this->discovery = $minimalismFactories->getServiceFactory()->create(Discovery::class);
 
-        if (!$this->authorisation->getUserId()){
+        if (($this->function !== null && !in_array($this->function, $this->freeMethods, true)) && !$this->authorisation->getUserId()){
             throw new MinimalismException(status: HttpCode::Unauthorized);
         }
     }
