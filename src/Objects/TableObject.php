@@ -62,7 +62,8 @@ class TableObject implements MinimaliserObjectInterface
         }
 
         $this->objectName = Pluraliser::singular(ucfirst($this->name));
-        $this->objectNamePlural = Pluraliser::plural(ucfirst($this->name));
+        $this->objectNamePlural = ucfirst($this->name);
+//        $this->objectNamePlural = Pluraliser::plural(ucfirst($this->name));
 
         do {
             $factory = SqlQueryFactory::create(
@@ -155,7 +156,7 @@ class TableObject implements MinimaliserObjectInterface
         $hasFields = false;
         foreach ($this->fields as $field){
             if (!$field->isPrimaryKey() && !in_array($field->getName(), ['createdAt','updatedAt'])) {
-                foreach ($foreignKeys ?? [] as $foreignKey) {
+                foreach ($foreignKeys as $foreignKey) {
                     if ($foreignKey['COLUMN_NAME'] === $field->getName()) {
                         foreach ($tables as $table) {
                             if ($table->getName() === $foreignKey['REFERENCED_TABLE_NAME']) {
