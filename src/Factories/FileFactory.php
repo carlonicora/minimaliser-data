@@ -284,6 +284,11 @@ class FileFactory
             mkdir($dataDirectory);
         }
 
+        $modelsDirectory = self::$sourceDirectory . DIRECTORY_SEPARATOR . 'Models';
+        if (!is_dir($modelsDirectory)) {
+            mkdir($modelsDirectory);
+        }
+
         # DICTIONARY
         $file = self::$twig->transform(document: $document, viewFile: SharedFile::Dictionary->getTemplate());
         file_put_contents($enumDirectory . DIRECTORY_SEPARATOR . SharedFile::Dictionary->getFileName($projectName), $file);
