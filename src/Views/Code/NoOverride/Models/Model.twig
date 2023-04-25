@@ -51,7 +51,16 @@ class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.
         $this->updatePaginationIds($page);
 
         if ($id !== null){
+{% if data.attributes.objectNamePlural == 'Users' %}
+            if ($id->getEncryptedValue() === 'me'){
+                $this->httpCache = HttpCache::NoCache;
+                $this->readSingle($this->authorisation->getUserId());
+            } else {
+                $this->readSingle($id->getValue());
+            }
+{% else %}
             $this->readSingle($id->getValue());
+{% endif %}
         } else {
             $this->readList($ids, $page);
         }
