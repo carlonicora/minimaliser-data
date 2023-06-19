@@ -56,7 +56,6 @@ abstract class Abstract{{ data.attributes.objectName }}ValidatorEdit extends Abs
             );
         }
 {% endif %}
-{% endif %}
 {% endfor %}
 
         $this->dataObject = $this->dataReader->readById($this->getDocument()->getSingleResource()->id);
