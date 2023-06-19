@@ -26,7 +26,7 @@ abstract class Abstract{{ data.attributes.objectName }}ValidatorCreate extends A
      */
     public function __construct(
 {% if fieldExist == true%}
-        private readonly EncrypterInterface $encrypter,
+        protected readonly EncrypterInterface $encrypter,
 {% endif %}
     )
     {

@@ -16,8 +16,8 @@ abstract class Abstract{{ data.attributes.objectName }}ValidatorEdit extends Abs
      *
      */
     public function __construct(
-        private readonly EncrypterInterface $encrypter,
-        private readonly {{ data.attributes.objectName }}IO $dataReader,
+        protected readonly EncrypterInterface $encrypter,
+        protected readonly {{ data.attributes.objectName }}IO $dataReader,
     )
     {
         $this->documentValidator = new DocumentValidator();
@@ -47,16 +47,13 @@ abstract class Abstract{{ data.attributes.objectName }}ValidatorEdit extends Abs
 {% for fieldIdentifier in data.relationships['fields'].data %}{% set field = lookupIncluded('field', fieldIdentifier.id, included) %}
 {% if field.meta.isId == false and field.attributes.name != 'updatedAt' and field.attributes.name != 'createdAt' and field.meta.FK %}
 
-{% if field.attributes.isNullable %}
         if ($this->getDocument()->getSingleResource()->attributes->has(name: '{{ field.meta.FK.field }}')){
-{% endif %}
-        $this->getDocument()->getSingleResource()->attributes->update(
-            name: '{{ field.meta.FK.field }}',
-            value: $this->encrypter->decryptId(
-                $this->getDocument()->getSingleResource()->attributes->get(name: '{{ field.meta.FK.field }}'),
-            ),
-        );
-{% if field.attributes.isNullable %}
+            $this->getDocument()->getSingleResource()->attributes->update(
+                name: '{{ field.meta.FK.field }}',
+                value: $this->encrypter->decryptId(
+                    $this->getDocument()->getSingleResource()->attributes->get(name: '{{ field.meta.FK.field }}'),
+                ),
+            );
         }
 {% endif %}
 {% endif %}
