@@ -185,7 +185,14 @@ class {{ data.attributes.objectNamePlural }} extends Abstract{{ data.attributes.
             {{ data.attributes.objectName | lower }}: ${{ data.attributes.objectName | lower }},
         );
 
-        return HttpCode::NoContent;
+        $this->document->addResource(
+            $this->builder->buildResource(
+                builderClass: {{ data.attributes.objectName }}Builder::class,
+                data: ${{ data.attributes.objectName | lower }},
+            )
+        );
+
+        return HttpCode::Ok;
     }
 {% endif %}
 
