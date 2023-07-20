@@ -38,6 +38,7 @@ abstract class Abstract{{ meta.projectName }}ResourceBuilder extends AbstractRes
 {% endif %}
         EncrypterInterface $encrypter,
         protected Path $path,
+        protected readonly Discovery $discovery,
         protected readonly ObjectFactory $objectFactory,
         protected readonly ResourceBuilder $builder,
     )
