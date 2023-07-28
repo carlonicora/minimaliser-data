@@ -1,6 +1,7 @@
 <?php
 namespace CarloNicora\Minimalism\MinimaliserData\Models;
 
+use CarloNicora\JsonApi\Objects\ResourceObject;
 use CarloNicora\Minimalism\Abstracts\AbstractModel;
 use CarloNicora\Minimalism\Enums\HttpCode;
 use CarloNicora\Minimalism\Factories\MinimalismFactories;
@@ -10,6 +11,7 @@ use CarloNicora\Minimalism\MinimaliserData\Factories\FileFactory;
 use CarloNicora\Minimalism\MinimaliserData\Factories\TestsFactory;
 use CarloNicora\Minimalism\MinimaliserData\Objects\DatabaseObject;
 use CarloNicora\Minimalism\MinimaliserData\Objects\TableObject;
+use CarloNicora\Minimalism\Services\Discovery\Data\EndpointData;
 use CarloNicora\Minimalism\Services\Discovery\Discovery;
 use CarloNicora\Minimalism\Services\Discovery\Factories\MicroserviceDataFactory;
 use CarloNicora\Minimalism\Services\Discovery\Models\Discovery\RunRegister;
@@ -200,12 +202,51 @@ class Minimaliser extends AbstractModel
         }
 
         $discovery = $this->minimalismFactories->getServiceFactory()->create(Discovery::class);
-        $discovery->setMicroserviceRegistry([FileFactory::getServiceData()]);
+
+        $serviceData = FileFactory::getServiceData();
+
+        $additionalEndpoints = $this->minimaliser->getAdditionalEndpoints();
+
+        if ($additionalEndpoints !== null){
+            $endpoints = explode(';', $additionalEndpoints);
+            foreach ($endpoints as $endpoint){
+                if ($endpoint !== ''){
+                    [$name, $configurations] = explode('?', $endpoint);
+                    [$url, $methodList] = explode('-', $configurations);
+                    $methods = explode(',', $methodList);
+
+                    $alreadyPresent = $serviceData->getElements()[0]->findChild($name);
+
+                    if ($alreadyPresent !== null){
+                        continue;
+                    }
+
+                    $endpointResource = new ResourceObject(type: 'endpoint', id: $serviceData->getElements()[0]->getId() . "-" . $name);
+                    $endpointResource->attributes->add(name: 'name', value: $url);
+                    foreach ($methods as $method){
+                        if ($method !== ''){
+                            $endpointResource->relationship('methods')->resourceLinkage->addResource(
+                                new ResourceObject(type: 'method', id: $method)
+                            );
+                        }
+                    }
+
+                    $endpointData = new EndpointData();
+                    $endpointData->import($endpointResource);
+
+                    $serviceData->getElements()[0]->add($endpointData);
+                }
+            }
+        }
+
+        $discovery->setMicroserviceRegistry([$serviceData]);
+
         $dataFactory = new MicroserviceDataFactory(
             path: $this->minimalismFactories->getServiceFactory()->getPath(),
             discovery: $discovery,
         );
-        $dataFactory->write([FileFactory::getServiceData()]);
+
+        $dataFactory->write([$serviceData]);
     }
 
     /**

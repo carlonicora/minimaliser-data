@@ -27,6 +27,7 @@ class Data extends AbstractService
     public function __construct(
         private readonly Path $path,
         private readonly Twig $twig,
+        private readonly ?string $MINIMALISM_SERVICE_MICROSERVICE_DATA_ADDITIONAL_ENDPOINTS=null,
     )
     {
     }
@@ -41,6 +42,10 @@ class Data extends AbstractService
         parent::initialise();
 
         $this->initialiseComposer();
+    }
+
+    public function getAdditionalEndpoints(): ?string {
+        return $this->MINIMALISM_SERVICE_MICROSERVICE_DATA_ADDITIONAL_ENDPOINTS;
     }
 
     /**
