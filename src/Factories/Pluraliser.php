@@ -34,6 +34,8 @@ class Pluraliser
             $response = substr($response, 0, -1) . 'ies';
         } elseif (strtolower(substr($name, strlen($name)-2)) === 'iz') {
             $response = substr($response, 0, -2) . 'zes';
+        } elseif (strtolower(substr($name, strlen($name)-3)) === 'ess') {
+            $response = $name . 'es';
         } elseif (strtolower(substr($name, strlen($name)-1)) !== 's') {
             $response = $name . 's';
         }
